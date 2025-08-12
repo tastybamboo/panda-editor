@@ -41,7 +41,7 @@ jobs:
           # For manual runs, check if version already exists
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "Manual run - checking if version already exists..."
-            
+
             # Check if tag exists
             if git ls-remote --tags origin | grep -q "refs/tags/v$CURRENT_VERSION"; then
               if [ "${{ inputs.force_release }}" == "true" ]; then
@@ -58,7 +58,9 @@ jobs:
           else
             # For automatic runs, check if version file was changed
             if [ -n "${{ github.event.workflow_run.head_commit.id }}" ]; then
-              CHANGED_FILES=$(git diff --name-only ${{ github.event.workflow_run.head_commit.id }}^ ${{ github.event.workflow_run.head_commit.id }} 2>/dev/null || git diff --name-only HEAD^ HEAD)
+              COMMIT_ID="${{ github.event.workflow_run.head_commit.id }}"
+              CHANGED_FILES=$(git diff --name-only "${COMMIT_ID}^" "${COMMIT_ID}" 2>/dev/null || \
+                             git diff --name-only HEAD^ HEAD)
             else
               CHANGED_FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
             fi
@@ -69,7 +71,8 @@ jobs:
 
               # Get the previous version
               git checkout HEAD~1
-              PREVIOUS_VERSION=$(ruby -r ./lib/panda/editor/version.rb -e "puts Panda::Editor::VERSION" 2>/dev/null || echo "0.0.0")
+              PREVIOUS_VERSION=$(ruby -r ./lib/panda/editor/version.rb \
+                                -e "puts Panda::Editor::VERSION" 2>/dev/null || echo "0.0.0")
               git checkout -
               echo "Previous version: $PREVIOUS_VERSION"
 
@@ -166,11 +169,13 @@ jobs:
             echo "" >> release_notes.md
 
             # Generate changelog
-            git log --pretty=format:"- %s (%an)" "$PREVIOUS_TAG"..HEAD | grep -v "Merge pull request" | head -20 >> release_notes.md
+            git log --pretty=format:"- %s (%an)" "$PREVIOUS_TAG"..HEAD | \
+              grep -v "Merge pull request" | head -20 >> release_notes.md
 
             echo "" >> release_notes.md
             REPO_URL="https://github.com/tastybamboo/panda-editor"
-            echo "**Full Changelog**: ${REPO_URL}/compare/$PREVIOUS_TAG...${{ needs.check-version.outputs.tag_name }}" >> release_notes.md
+            TAG="${{ needs.check-version.outputs.tag_name }}"
+            echo "**Full Changelog**: ${REPO_URL}/compare/$PREVIOUS_TAG...$TAG" >> release_notes.md
           else
             echo "Initial release!" > release_notes.md
           fi
