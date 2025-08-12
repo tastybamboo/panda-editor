@@ -12,4 +12,5 @@ group :development, :test do
   gem "rspec-rails", "~> 6.0"
   gem "bundle-audit", "~> 0.1"
   gem "erb_lint", "~> 0.5"
+  gem "sprockets-rails", "~> 3.4"
 end
