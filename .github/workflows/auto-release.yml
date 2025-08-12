@@ -156,8 +156,15 @@ jobs:
           git config --global user.email "actions@github.com"
 
           TAG="${{ needs.check-version.outputs.tag_name }}"
-          git tag -a "$TAG" -m "Release ${{ needs.check-version.outputs.new_version }}"
-          git push origin "$TAG"
+          
+          # Check if tag already exists
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
+            echo "⚠️ Tag $TAG already exists, skipping tag creation"
+          else
+            echo "📌 Creating tag $TAG"
+            git tag -a "$TAG" -m "Release ${{ needs.check-version.outputs.new_version }}"
+            git push origin "$TAG"
+          fi
 
       - name: Generate release notes
         id: release_notes
@@ -183,7 +190,22 @@ jobs:
 
           cat release_notes.md
 
+      - name: Check if gem version exists on RubyGems
+        id: check_gem
+        run: |
+          VERSION="${{ needs.check-version.outputs.new_version }}"
+          
+          # Check if this version already exists on RubyGems
+          if gem list -r panda-editor -a | grep -q "$VERSION"; then
+            echo "⚠️ Version $VERSION already exists on RubyGems"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Version $VERSION not found on RubyGems, ready to publish"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Push to RubyGems
+        if: steps.check_gem.outputs.exists != 'true'
         env:
           GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
         run: |
@@ -207,7 +229,21 @@ jobs:
           # Clean up credentials
           rm ~/.gem/credentials
 
+      - name: Check if GitHub release exists
+        id: check_release
+        run: |
+          TAG="${{ needs.check-version.outputs.tag_name }}"
+          
+          if gh release view "$TAG" --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "⚠️ GitHub release $TAG already exists"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ GitHub release $TAG does not exist, ready to create"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create GitHub Release
+        if: steps.check_release.outputs.exists != 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.check-version.outputs.tag_name }}
@@ -218,22 +254,34 @@ jobs:
 
       - name: Verify release
         run: |
-          echo "🔍 Verifying release..."
-
-          # Wait a bit for RubyGems to update
-          sleep 30
-
-          # Check if gem is available on RubyGems
-          if gem list -r panda-editor -a | grep -q "${{ needs.check-version.outputs.new_version }}"; then
-            echo "✅ Gem is available on RubyGems!"
+          echo "🔍 Verifying release status..."
+          VERSION="${{ needs.check-version.outputs.new_version }}"
+          TAG="${{ needs.check-version.outputs.tag_name }}"
+          
+          echo ""
+          echo "📋 Release Summary for version $VERSION:"
+          echo ""
+          
+          # Check tag status
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
+            echo "  ✅ Git tag: $TAG exists"
           else
-            echo "⚠️ Gem not yet visible on RubyGems (this may take a few minutes)"
+            echo "  ❌ Git tag: $TAG not found"
           fi
-
+          
+          # Check GitHub release status
+          if gh release view "$TAG" --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "  ✅ GitHub release: $TAG exists"
+          else
+            echo "  ⚠️ GitHub release: $TAG not created"
+          fi
+          
+          # Check RubyGems status
+          if gem list -r panda-editor -a | grep -q "$VERSION"; then
+            echo "  ✅ RubyGems: version $VERSION published"
+          else
+            echo "  ⚠️ RubyGems: version $VERSION not found (may take a few minutes to appear)"
+          fi
+          
           echo ""
-          echo "📋 Release Summary:"
-          echo "  Version: ${{ needs.check-version.outputs.new_version }}"
-          echo "  Tag: ${{ needs.check-version.outputs.tag_name }}"
-          echo "  Gem: panda-editor-${{ needs.check-version.outputs.new_version }}.gem"
-          echo ""
-          echo "🎉 Release complete!"
+          echo "🎉 Release workflow complete!"
