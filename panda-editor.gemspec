@@ -37,5 +37,5 @@ Gem::Specification.new do |spec|
   # Development dependencies
   spec.add_development_dependency "rspec-rails", "~> 6.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.2"
-  spec.add_development_dependency "standardrb", ">= 1.35.1"
+  spec.add_development_dependency "standard", ">= 1.35.1"
 end
