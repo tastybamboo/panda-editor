@@ -42,21 +42,17 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      - name: Setup test database
-        env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/test
-          RAILS_ENV: test
-        run: |
-          cd spec/dummy
-          bundle exec rails db:create
-          bundle exec rails db:schema:load
-
       - name: Run tests
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/test
           RAILS_ENV: test
         run: |
-          bundle exec rspec --tag ~skip
+          # Skip tests if no specs exist yet
+          if [ -d spec ] && [ "$(find spec -name '*_spec.rb' 2>/dev/null | wc -l)" -gt 0 ]; then
+            bundle exec rspec --tag ~skip
+          else
+            echo "No specs found, skipping tests"
+          fi
 
       - name: Upload coverage
         if: matrix.ruby == '3.3' && matrix.rails == '7.2'

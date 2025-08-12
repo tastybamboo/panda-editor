@@ -37,8 +37,8 @@ module Panda
         private
 
         def use_compiled_assets?
-          Rails.env.production? || 
-            Rails.env.test? || 
+          Rails.env.production? ||
+            Rails.env.test? ||
             ENV["PANDA_EDITOR_USE_COMPILED_ASSETS"] == "true"
         end
 
@@ -86,7 +86,7 @@ module Panda
 
         def download_assets_from_github
           Rails.logger.info "[Panda Editor] Downloading assets from GitHub releases..."
-          
+
           begin
             release_data = fetch_latest_release
             download_release_assets(release_data["assets"])
@@ -99,7 +99,7 @@ module Panda
         def fetch_latest_release
           uri = URI(GITHUB_RELEASES_URL)
           response = Net::HTTP.get_response(uri)
-          
+
           if response.code == "200"
             JSON.parse(response.body)
           else
@@ -110,7 +110,7 @@ module Panda
         def download_release_assets(assets)
           assets.each do |asset|
             next unless asset["name"].match?(/panda-editor.*\.(js|css)$/)
-            
+
             download_asset(asset)
           end
         end
@@ -118,7 +118,7 @@ module Panda
         def download_asset(asset)
           uri = URI(asset["browser_download_url"])
           response = Net::HTTP.get_response(uri)
-          
+
           if response.code == "200"
             save_asset(asset["name"], response.body)
           end
@@ -127,7 +127,7 @@ module Panda
         def save_asset(filename, content)
           dir = Rails.root.join("public", "panda-editor-assets")
           FileUtils.mkdir_p(dir)
-          
+
           File.write(dir.join(filename), content)
           Rails.logger.info "[Panda Editor] Downloaded #{filename}"
         end
@@ -141,7 +141,7 @@ module Panda
         def copy_embedded_assets
           source_dir = Panda::Editor::Engine.root.join("public", "panda-editor-assets")
           dest_dir = Rails.root.join("public", "panda-editor-assets")
-          
+
           FileUtils.mkdir_p(dest_dir)
           FileUtils.cp_r(Dir.glob(source_dir.join("*")), dest_dir)
         end

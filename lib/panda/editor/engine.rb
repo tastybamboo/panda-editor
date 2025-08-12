@@ -14,7 +14,7 @@ module Panda
 
       # Allow applications to configure editor tools
       config.editor_js_tools = []
-      
+
       # Custom block renderers
       config.custom_renderers = {}
 

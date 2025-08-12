@@ -10,7 +10,7 @@ module Panda
     # Autoload components
     autoload :Renderer, "panda/editor/renderer"
     autoload :Content, "panda/editor/content"
-    
+
     module Blocks
       autoload :Base, "panda/editor/blocks/base"
       autoload :Alert, "panda/editor/blocks/alert"

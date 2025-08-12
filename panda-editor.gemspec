@@ -33,7 +33,7 @@ Gem::Specification.new do |spec|
   # Rails dependencies
   spec.add_dependency "rails", ">= 7.1"
   spec.add_dependency "sanitize", "~> 6.0"
-  
+
   # Development dependencies
   spec.add_development_dependency "rspec-rails", "~> 6.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.2"
