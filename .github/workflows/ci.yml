@@ -1,0 +1,108 @@
+---
+name: CI
+
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [3.2, 3.3]
+        rails: [7.1, 7.2]
+    env:
+      BUNDLE_PATH: vendor/bundle
+      RAILS_ENV: test
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test
+        ports: [5432:5432]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/test
+          RAILS_ENV: test
+        run: |
+          cd spec/dummy
+          bundle exec rails db:create
+          bundle exec rails db:schema:load
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/test
+          RAILS_ENV: test
+        run: |
+          bundle exec rspec --tag ~skip
+
+      - name: Upload coverage
+        if: matrix.ruby == '3.3' && matrix.rails == '7.2'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/.resultset.json
+          fail_ci_if_error: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Run StandardRB
+        run: |
+          bundle exec standardrb --format progress
+
+      - name: Run ERB Lint
+        run: |
+          bundle exec erb_lint app/views --lint-all || true
+
+      - name: Security audit
+        run: |
+          bundle exec bundle-audit --update
+
+  validate-yaml:
+    name: Validate YAML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+
+      - name: Validate YAML files
+        run: |
+          yamllint -c .yamllint . || true
