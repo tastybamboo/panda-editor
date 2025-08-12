@@ -34,6 +34,9 @@ require "panda/editor"
 
 require "rspec/rails"
 
+# Load support files
+Dir[File.join(__dir__, "support", "**", "*.rb")].sort.each { |f| require f }
+
 RSpec.configure do |config|
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
