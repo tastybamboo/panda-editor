@@ -1,0 +1,36 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/vendor/bundle/
+/spec/dummy/log/
+/spec/dummy/tmp/
+/spec/dummy/db/*.sqlite3
+/spec/dummy/db/*.sqlite3-journal
+/spec/dummy/storage/
+/spec/dummy/public/assets/
+
+# Ignore built gem files
+*.gem
+
+# Ignore RSpec failure screenshots
+/spec/dummy/tmp/capybara/
+
+# Ruby version files
+.ruby-version
+.ruby-gemset
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Bundler
+Gemfile.lock
