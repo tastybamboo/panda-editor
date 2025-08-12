@@ -40,4 +40,10 @@ Dir[File.join(__dir__, "support", "**", "*.rb")].sort.each { |f| require f }
 RSpec.configure do |config|
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
+
+  # Include Rails view helpers in specs
+  config.include ActionView::Helpers::TagHelper
+  config.include ActionView::Helpers::AssetTagHelper
+  config.include ActionView::Helpers::UrlHelper
+  config.include ActionView::Helpers::SanitizeHelper
 end

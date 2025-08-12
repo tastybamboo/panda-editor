@@ -1,0 +1,34 @@
+example_id                                            | status | run_time        |
+----------------------------------------------------- | ------ | --------------- |
+./spec/lib/panda/editor/blocks/alert_spec.rb[1:1]     | passed | 0.00007 seconds |
+./spec/lib/panda/editor/blocks/alert_spec.rb[1:2]     | passed | 0.00008 seconds |
+./spec/lib/panda/editor/blocks/base_spec.rb[1:1]      | passed | 0.00003 seconds |
+./spec/lib/panda/editor/blocks/base_spec.rb[1:2]      | passed | 0.00011 seconds |
+./spec/lib/panda/editor/blocks/base_spec.rb[1:3]      | passed | 0.00031 seconds |
+./spec/lib/panda/editor/blocks/base_spec.rb[1:4]      | passed | 0.00003 seconds |
+./spec/lib/panda/editor/blocks/header_spec.rb[1:1]    | passed | 0.00008 seconds |
+./spec/lib/panda/editor/blocks/header_spec.rb[1:2]    | passed | 0.00007 seconds |
+./spec/lib/panda/editor/blocks/image_spec.rb[1:1]     | passed | 0.00008 seconds |
+./spec/lib/panda/editor/blocks/image_spec.rb[1:2]     | passed | 0.00004 seconds |
+./spec/lib/panda/editor/blocks/list_spec.rb[1:1]      | passed | 0.00018 seconds |
+./spec/lib/panda/editor/blocks/list_spec.rb[1:2]      | passed | 0.0001 seconds  |
+./spec/lib/panda/editor/blocks/paragraph_spec.rb[1:1] | passed | 0.00007 seconds |
+./spec/lib/panda/editor/blocks/paragraph_spec.rb[1:2] | passed | 0.0001 seconds  |
+./spec/lib/panda/editor/blocks/paragraph_spec.rb[1:3] | passed | 0.00003 seconds |
+./spec/lib/panda/editor/blocks/quote_spec.rb[1:1]     | passed | 0.00011 seconds |
+./spec/lib/panda/editor/blocks/quote_spec.rb[1:2]     | passed | 0.00007 seconds |
+./spec/lib/panda/editor/blocks/table_spec.rb[1:1]     | passed | 0.00029 seconds |
+./spec/lib/panda/editor/blocks/table_spec.rb[1:2]     | passed | 0.00021 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:1]         | passed | 0.00079 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:2]         | passed | 0.00003 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:3]         | passed | 0.00046 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:4]         | passed | 0.0002 seconds  |
+./spec/lib/panda/editor/renderer_spec.rb[1:5]         | passed | 0.00153 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:6]         | passed | 0.0003 seconds  |
+./spec/lib/panda/editor/renderer_spec.rb[1:7:1]       | passed | 0.00012 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:8:1]       | passed | 0.0001 seconds  |
+./spec/lib/panda/editor/renderer_spec.rb[1:8:2]       | passed | 0.00012 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:8:3]       | passed | 0.0001 seconds  |
+./spec/lib/panda/editor/renderer_spec.rb[1:9:1]       | passed | 0.00012 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:10:1]      | passed | 0.00011 seconds |
+./spec/lib/panda/editor/renderer_spec.rb[1:11:1]      | passed | 0.0001 seconds  |
