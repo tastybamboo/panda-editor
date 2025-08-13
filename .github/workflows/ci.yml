@@ -16,12 +16,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.3.7', '3.4.5']
+        ruby: [3.3.7, 3.4.5]
         rails: [7.1, 7.2, 8.0]
     env:
       BUNDLE_PATH: vendor/bundle
       RAILS_ENV: test
-      DISPLAY: ':99'
+      DISPLAY: :99
     services:
       postgres:
         image: postgres:latest
@@ -46,7 +46,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor/bundle
-          key: ${{ runner.os }}-ruby-${{ matrix.ruby }}-rails-${{ matrix.rails }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          key: |
+            ${{ runner.os }}-ruby-${{ matrix.ruby }}-rails-${{ matrix.rails }}-
+            gems-${{ hashFiles('**/Gemfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ruby-${{ matrix.ruby }}-rails-${{ matrix.rails }}-gems-
             ${{ runner.os }}-ruby-${{ matrix.ruby }}-gems-
