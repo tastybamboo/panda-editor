@@ -11,14 +11,17 @@ jobs:
   test:
     name: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/tastybamboo/panda-ci:ruby-${{ matrix.ruby }}
     strategy:
       fail-fast: false
       matrix:
-        ruby: [3.2, 3.3]
+        ruby: ['3.3.7', '3.4.5']
         rails: [7.1, 7.2, 8.0]
     env:
       BUNDLE_PATH: vendor/bundle
       RAILS_ENV: test
+      DISPLAY: ':99'
     services:
       postgres:
         image: postgres:latest
@@ -26,7 +29,6 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: test
-        ports: [5432:5432]
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -36,70 +38,78 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Start Xvfb
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
+      - name: Cache gems
+        uses: actions/cache@v4
         with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
+          path: vendor/bundle
+          key: ${{ runner.os }}-ruby-${{ matrix.ruby }}-rails-${{ matrix.rails }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ruby-${{ matrix.ruby }}-rails-${{ matrix.rails }}-gems-
+            ${{ runner.os }}-ruby-${{ matrix.ruby }}-gems-
+
+      - name: Bundle install
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
 
       - name: Run tests
         env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/test
+          DATABASE_URL: postgres://postgres:password@postgres:5432/test
           RAILS_ENV: test
         run: |
           # Skip tests if no specs exist yet
-          if [ -d spec ] && [ "$(find spec -name '*_spec.rb' 2>/dev/null | wc -l)" -gt 0 ]; then
-            bundle exec rspec --tag ~skip
+          if [ -d "spec" ] && [ "$(find spec -name '*_spec.rb' | wc -l)" -gt 0 ]; then
+            bundle exec rspec
           else
             echo "No specs found, skipping tests"
           fi
 
-      - name: Upload coverage
-        if: matrix.ruby == '3.3' && matrix.rails == '7.2'
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage/.resultset.json
-          fail_ci_if_error: false
-
   lint:
-    name: Lint
+    name: Linters
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/tastybamboo/panda-ci:ruby-3.4.5
+    env:
+      BUNDLE_PATH: vendor/bundle
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Cache gems
+        uses: actions/cache@v4
         with:
-          ruby-version: 3.3
-          bundler-cache: true
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-lint-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-lint-
+            ${{ runner.os }}-gems-
 
-      - name: Run Standard
+      - name: Bundle install
         run: |
-          bundle exec standardrb --format progress
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Run StandardRB
+        run: bundle exec standardrb
 
       - name: Run ERB Lint
         run: |
-          bundle exec erb_lint app/views --lint-all || true
+          if [ -f ".erb-lint.yml" ]; then
+            bundle exec erb_lint app/views --lint-all
+          else
+            echo "No .erb-lint.yml found, skipping ERB lint"
+          fi
 
-      - name: Security audit
+      - name: Run Brakeman
+        run: bundle exec brakeman --quiet --skip-files app/javascript/
+
+      - name: Run bundle-audit
         run: |
-          bundle exec bundle-audit --update
+          bundle exec bundle-audit update
+          bundle exec bundle-audit check
 
-  validate-yaml:
-    name: Validate YAML
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-
-      - name: Install yamllint
-        run: |
-          pip install yamllint
-
-      - name: Validate YAML files
-        run: |
-          yamllint -c .yamllint . || true
+      - name: Run YAML lint
+        run: yamllint -c .yamllint .
