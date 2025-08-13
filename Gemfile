@@ -10,6 +10,7 @@ gem "rake", "~> 13.0"
 group :development, :test do
   gem "rspec", "~> 3.0"
   gem "rspec-rails", "~> 6.0"
+  gem "brakeman", "~> 6.0"
   gem "bundle-audit", "~> 0.1"
   gem "erb_lint", "~> 0.5"
 end
