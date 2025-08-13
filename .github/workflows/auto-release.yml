@@ -156,7 +156,7 @@ jobs:
           git config --global user.email "actions@github.com"
 
           TAG="${{ needs.check-version.outputs.tag_name }}"
-          
+
           # Check if tag already exists
           if git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
             echo "⚠️ Tag $TAG already exists, skipping tag creation"
@@ -194,7 +194,7 @@ jobs:
         id: check_gem
         run: |
           VERSION="${{ needs.check-version.outputs.new_version }}"
-          
+
           # Check if this version already exists on RubyGems
           if gem list -r panda-editor -a | grep -q "$VERSION"; then
             echo "⚠️ Version $VERSION already exists on RubyGems"
@@ -233,7 +233,7 @@ jobs:
         id: check_release
         run: |
           TAG="${{ needs.check-version.outputs.tag_name }}"
-          
+
           if gh release view "$TAG" --repo ${{ github.repository }} >/dev/null 2>&1; then
             echo "⚠️ GitHub release $TAG already exists"
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -257,31 +257,31 @@ jobs:
           echo "🔍 Verifying release status..."
           VERSION="${{ needs.check-version.outputs.new_version }}"
           TAG="${{ needs.check-version.outputs.tag_name }}"
-          
+
           echo ""
           echo "📋 Release Summary for version $VERSION:"
           echo ""
-          
+
           # Check tag status
           if git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
             echo "  ✅ Git tag: $TAG exists"
           else
             echo "  ❌ Git tag: $TAG not found"
           fi
-          
+
           # Check GitHub release status
           if gh release view "$TAG" --repo ${{ github.repository }} >/dev/null 2>&1; then
             echo "  ✅ GitHub release: $TAG exists"
           else
             echo "  ⚠️ GitHub release: $TAG not created"
           fi
-          
+
           # Check RubyGems status
           if gem list -r panda-editor -a | grep -q "$VERSION"; then
             echo "  ✅ RubyGems: version $VERSION published"
           else
             echo "  ⚠️ RubyGems: version $VERSION not found (may take a few minutes to appear)"
           fi
-          
+
           echo ""
           echo "🎉 Release workflow complete!"
