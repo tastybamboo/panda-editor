@@ -10,6 +10,7 @@ module Panda
     # Autoload components
     autoload :Renderer, "panda/editor/renderer"
     autoload :Content, "panda/editor/content"
+    autoload :FootnoteRegistry, "panda/editor/footnote_registry"
 
     module Blocks
       autoload :Base, "panda/editor/blocks/base"

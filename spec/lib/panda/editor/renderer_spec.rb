@@ -611,6 +611,229 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       expect(rendered).to include("minimal-footer")
     end
   end
+
+  describe "footnotes" do
+    let(:content_with_footnotes) do
+      {
+        "blocks" => [
+          {
+            "type" => "paragraph",
+            "data" => {
+              "text" => "People with ADHD are 25x more likely to self-harm",
+              "footnotes" => [
+                {
+                  "id" => "fn-uuid-1",
+                  "content" => "Study reference needed for ADHD self-harm statistic.",
+                  "position" => 32
+                }
+              ]
+            }
+          },
+          {
+            "type" => "paragraph",
+            "data" => {
+              "text" => "Suicide is the leading cause of death for adults with autism",
+              "footnotes" => [
+                {
+                  "id" => "fn-uuid-2",
+                  "content" => "Study reference needed for autism suicide statistic.",
+                  "position" => 45
+                }
+              ]
+            }
+          }
+        ]
+      }
+    end
+
+    it "appends sources section when footnotes exist" do
+      renderer = described_class.new(content_with_footnotes)
+      output = renderer.render
+
+      # Check that footnote markers are in paragraphs
+      expect(output).to include("<sup id=\"fnref:1\">")
+      expect(output).to include("<a href=\"#fn:1\" class=\"footnote\">1</a>")
+      expect(output).to include("<sup id=\"fnref:2\">")
+      expect(output).to include("<a href=\"#fn:2\" class=\"footnote\">2</a>")
+
+      # Check that sources section exists
+      expect(output).to include("Sources/References")
+      expect(output).to include("footnotes-section")
+
+      # Check that footnote content is in sources section
+      expect(output).to include("Study reference needed for ADHD self-harm statistic.")
+      expect(output).to include("Study reference needed for autism suicide statistic.")
+
+      # Check that backlinks exist
+      expect(output).to include("<a href=\"#fnref:1\" class=\"footnote-backref\">↩</a>")
+      expect(output).to include("<a href=\"#fnref:2\" class=\"footnote-backref\">↩</a>")
+    end
+
+    it "does not append sources section when no footnotes" do
+      content_without_footnotes = {
+        "blocks" => [
+          {
+            "type" => "paragraph",
+            "data" => {"text" => "Simple paragraph without footnotes"}
+          }
+        ]
+      }
+
+      renderer = described_class.new(content_without_footnotes)
+      output = renderer.render
+
+      expect(output).not_to include("Sources/References")
+      expect(output).not_to include("footnotes-section")
+    end
+
+    it "handles duplicate footnote IDs correctly" do
+      content_with_duplicate_footnotes = {
+        "blocks" => [
+          {
+            "type" => "paragraph",
+            "data" => {
+              "text" => "First reference to study",
+              "footnotes" => [
+                {
+                  "id" => "fn-uuid-1",
+                  "content" => "Important study",
+                  "position" => 16
+                }
+              ]
+            }
+          },
+          {
+            "type" => "paragraph",
+            "data" => {
+              "text" => "Second reference to same study",
+              "footnotes" => [
+                {
+                  "id" => "fn-uuid-1",
+                  "content" => "Important study",
+                  "position" => 24
+                }
+              ]
+            }
+          }
+        ]
+      }
+
+      renderer = described_class.new(content_with_duplicate_footnotes)
+      output = renderer.render
+
+      # Both should reference footnote 1
+      expect(output.scan(/fnref:1/).length).to eq(4) # 2 markers + 2 in li ids
+      expect(output.scan(/fn:1/).length).to eq(4)     # 2 hrefs + 2 in sup ids
+
+      # Only one entry in sources
+      expect(output.scan(/Important study/).length).to eq(1)
+    end
+
+    describe "autolink_urls option" do
+      let(:content_with_url) do
+        {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "This is a test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-doi",
+                    "content" => "Ward, J.H. & Curran, S. (2021). Self-harm as the first presentation of attention deficit hyperactivity disorder in adolescents. Child & Adolescent Mental Health, 26(4), 303-309. https://doi.org/10.1111/camh.12471",
+                    "position" => 14
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      end
+
+      it "converts plain URLs to links when autolink_urls is true" do
+        renderer = described_class.new(content_with_url, autolink_urls: true)
+        output = renderer.render
+
+        # Check the sources section contains the linked URL
+        expect(output).to include("Sources/References")
+        expect(output).to include('<a href="https://doi.org/10.1111/camh.12471" target="_blank" rel="noopener noreferrer">https://doi.org/10.1111/camh.12471</a>')
+      end
+
+      it "does not convert URLs when autolink_urls is false" do
+        renderer = described_class.new(content_with_url, autolink_urls: false)
+        output = renderer.render
+
+        # Check the sources section contains the plain URL
+        expect(output).to include("Sources/References")
+        expect(output).to include("https://doi.org/10.1111/camh.12471")
+        # Make sure it's not linked (the URL should appear as plain text, not in href)
+        expect(output).not_to match(/<a[^>]*href="https:\/\/doi\.org\/10\.1111\/camh\.12471"[^>]*>https:\/\/doi\.org\/10\.1111\/camh\.12471<\/a>/)
+      end
+
+      it "does not convert URLs when autolink_urls is not specified" do
+        renderer = described_class.new(content_with_url)
+        output = renderer.render
+
+        # Check the sources section contains the plain URL
+        expect(output).to include("Sources/References")
+        expect(output).to include("https://doi.org/10.1111/camh.12471")
+        # Make sure it's not linked
+        expect(output).not_to match(/<a[^>]*href="https:\/\/doi\.org\/10\.1111\/camh\.12471"[^>]*>https:\/\/doi\.org\/10\.1111\/camh\.12471<\/a>/)
+      end
+
+      it "does not double-link URLs that are already in anchor tags" do
+        content_with_existing_link = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-link",
+                    "content" => 'Already linked: <a href="https://example.com">https://example.com</a>',
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        renderer = described_class.new(content_with_existing_link, autolink_urls: true)
+        output = renderer.render
+
+        # Should only have one <a> tag for this URL
+        expect(output.scan(/<a[^>]*href="https:\/\/example\.com"/).length).to eq(1)
+      end
+
+      it "handles multiple URLs in one footnote" do
+        content_with_multiple_urls = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-multi",
+                    "content" => "See https://example.com and https://another.org for more info",
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        renderer = described_class.new(content_with_multiple_urls, autolink_urls: true)
+        output = renderer.render
+
+        expect(output).to include('<a href="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a>')
+        expect(output).to include('<a href="https://another.org" target="_blank" rel="noopener noreferrer">https://another.org</a>')
+      end
+    end
+  end
 end
 
 class Layout

@@ -19,6 +19,8 @@ module Panda
       config.custom_renderers = {}
 
       initializer "panda_editor.assets" do |app|
+        next unless app.config.respond_to?(:assets)
+
         app.config.assets.paths << root.join("app/javascript")
         app.config.assets.paths << root.join("public")
         app.config.assets.precompile += %w[panda/editor/*.js panda/editor/*.css]
