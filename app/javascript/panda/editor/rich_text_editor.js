@@ -5,6 +5,8 @@ import List from "@editorjs/list"
 import Quote from "@editorjs/quote"
 import Table from "@editorjs/table"
 import NestedList from "@editorjs/nested-list"
+import FootnoteTool from "./tools/footnote_tool"
+import ParagraphWithFootnotes from "./tools/paragraph_with_footnotes"
 
 export default class RichTextEditor {
   constructor(element, iframe) {
@@ -72,7 +74,7 @@ export default class RichTextEditor {
         placeholder: "Click to start writing...",
         tools: {
           paragraph: {
-            class: Paragraph,
+            class: ParagraphWithFootnotes,
             inlineToolbar: true
           },
           header: {
@@ -94,6 +96,9 @@ export default class RichTextEditor {
           table: {
             class: Table,
             inlineToolbar: true
+          },
+          footnote: {
+            class: FootnoteTool
           }
         },
         onChange: () => {
