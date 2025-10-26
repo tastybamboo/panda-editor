@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panda Editor - Footnote Tool Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #f9fafb;
+    }
+
+    h1 {
+      color: #111827;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .test-container {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #374151;
+    }
+
+    #editorjs {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      min-height: 300px;
+      background: white;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: white;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    button.primary {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    button.primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
+    #output {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 20px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    #rendered {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 20px;
+      min-height: 100px;
+      line-height: 1.8;
+    }
+
+    .instructions {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .instructions h3 {
+      margin: 0 0 10px 0;
+      color: #92400e;
+      font-size: 16px;
+    }
+
+    .instructions ol {
+      margin: 10px 0 0 20px;
+      padding: 0;
+    }
+
+    .instructions li {
+      margin-bottom: 5px;
+      color: #78350f;
+    }
+
+    /* EditorJS Styles */
+    .codex-editor {
+      position: relative;
+    }
+
+    .codex-editor::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 65px;
+      margin-right: 5px;
+      background-color: #f9fafb;
+      border-right: 2px dashed #e5e7eb;
+      z-index: 0;
+    }
+
+    .ce-block {
+      padding-left: 70px;
+      position: relative;
+      min-height: 40px;
+      margin: 0;
+      padding-bottom: 1em;
+    }
+
+    .ce-block__content {
+      position: relative;
+      max-width: none;
+      margin: 0;
+    }
+
+    .ce-paragraph {
+      padding: 0;
+      line-height: 1.6;
+      min-height: 1.6em;
+      margin: 0;
+    }
+
+    /* Footnote marker styles */
+    .footnote-marker {
+      display: inline-block;
+      color: #3b82f6;
+      font-size: 0.75em;
+      font-weight: 600;
+      vertical-align: super;
+      cursor: pointer;
+      padding: 0 2px;
+      user-select: none;
+      margin-left: 1px;
+    }
+
+    .footnote-marker:hover {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+
+    /* Toolbar styles */
+    .ce-toolbar {
+      left: 0 !important;
+      right: auto !important;
+      background: none !important;
+      position: absolute !important;
+      width: 65px !important;
+      height: 40px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      padding: 0 !important;
+      margin-left: -70px !important;
+      margin-top: -5px !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: all !important;
+      z-index: 2 !important;
+    }
+
+    .status-message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .status-message.info {
+      background: #dbeafe;
+      border: 1px solid #3b82f6;
+      color: #1e40af;
+    }
+
+    .status-message.error {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .status-message.success {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      color: #065f46;
+    }
+  </style>
+</head>
+<body>
+  <h1>🦾 Panda Editor - Footnote Tool Test</h1>
+  <p class="subtitle">Testing the new EditorJS inline footnote tool with auto-generated IDs</p>
+
+  <div class="test-container">
+    <div id="status-area"></div>
+
+    <div class="instructions">
+      <h3>📋 How to Test</h3>
+      <ol>
+        <li>Wait for the editor to load (status message will appear)</li>
+        <li>Type some text in the editor below</li>
+        <li>Select a word or phrase where you want to add a footnote</li>
+        <li>Click the <strong>footnote button (fn)</strong> in the inline toolbar</li>
+        <li>Enter a citation in the modal (e.g., "Smith, J. (2023). Research Study.")</li>
+        <li>Click "Add Footnote" or press Cmd/Ctrl+Enter</li>
+        <li>You should see a blue <strong>numbered marker</strong> appear (1, 2, 3, etc.)</li>
+        <li>Try adding multiple footnotes - they automatically renumber!</li>
+        <li>Click "Get JSON Data" to see the footnote data structure</li>
+      </ol>
+    </div>
+
+    <h2 class="section-title">Editor</h2>
+    <div id="editorjs"></div>
+
+    <div class="button-group">
+      <button class="primary" onclick="saveData()">Get JSON Data</button>
+      <button onclick="clearEditor()">Clear Editor</button>
+      <button onclick="loadSample()">Load Sample with Footnotes</button>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2 class="section-title">JSON Output</h2>
+    <div id="output">Click "Get JSON Data" to see the editor content with footnote data...</div>
+  </div>
+
+  <div class="test-container">
+    <h2 class="section-title">Rendered Preview (simulated)</h2>
+    <div id="rendered">The rendered HTML will appear here after you save...</div>
+  </div>
+
+  <!-- Load EditorJS and tools from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1"></script>
+
+  <script>
+    // Status helper
+    function showStatus(message, type = 'info') {
+      const statusArea = document.getElementById('status-area');
+      statusArea.innerHTML = `<div class="status-message ${type}">${message}</div>`;
+    }
+
+    showStatus('⏳ Loading footnote tool...', 'info');
+
+    // NOTE: For this standalone test, we'll use a simplified footnote implementation
+    // The full implementation requires serving from a web server due to ES6 module restrictions
+
+    /**
+     * Simplified FootnoteTool for testing
+     */
+    class FootnoteTool {
+      static get isInline() {
+        return true;
+      }
+
+      static get title() {
+        return 'Footnote';
+      }
+
+      static get sanitize() {
+        return {
+          sup: {
+            class: 'footnote-marker',
+            'data-footnote-id': true,
+            'data-footnote-content': true
+          }
+        };
+      }
+
+      constructor({ api }) {
+        this.api = api;
+        this.button = null;
+        this.state = false;
+
+        this.CSS = {
+          button: 'ce-inline-tool',
+          buttonActive: 'ce-inline-tool--active',
+          buttonModifier: 'ce-inline-tool--footnote'
+        };
+
+        this.iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <text x="2" y="16" font-size="12" font-weight="bold" fill="currentColor">fn</text>
+        </svg>`;
+      }
+
+      render() {
+        this.button = document.createElement('button');
+        this.button.type = 'button';
+        this.button.classList.add(this.CSS.button, this.CSS.buttonModifier);
+        this.button.innerHTML = this.iconSVG;
+        this.button.title = 'Add Footnote';
+
+        return this.button;
+      }
+
+      surround(range) {
+        if (this.state) {
+          this.unwrap(range);
+          return;
+        }
+
+        const position = this.getCaretPosition(range);
+
+        this.showFootnoteModal((content) => {
+          if (!content || content.trim() === '') {
+            return;
+          }
+
+          const footnoteId = this.generateFootnoteId();
+          this.wrap(range, footnoteId, content.trim());
+        });
+      }
+
+      wrap(range, footnoteId, content) {
+        const marker = document.createElement('sup');
+        marker.classList.add('footnote-marker');
+        marker.dataset.footnoteId = footnoteId;
+        marker.dataset.footnoteContent = content;
+        marker.contentEditable = false;
+
+        range.collapse(false);
+        range.insertNode(marker);
+
+        range.setStartAfter(marker);
+        range.collapse(true);
+
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Renumber all footnotes in the document
+        setTimeout(() => this.renumberAllFootnotes(), 0);
+      }
+
+      unwrap(range) {
+        const marker = this.findMarkerInRange(range);
+        if (marker) {
+          marker.remove();
+
+          // Renumber remaining footnotes
+          setTimeout(() => this.renumberAllFootnotes(), 0);
+        }
+      }
+
+      checkState(selection) {
+        if (!selection || !selection.anchorNode) {
+          this.state = false;
+          return false;
+        }
+
+        const marker = this.findMarkerInSelection(selection);
+        this.state = !!marker;
+
+        return this.state;
+      }
+
+      findMarkerInSelection(selection) {
+        if (!selection.anchorNode) return null;
+
+        let node = selection.anchorNode;
+
+        while (node) {
+          if (node.nodeType === Node.ELEMENT_NODE &&
+              node.tagName === 'SUP' &&
+              node.classList.contains('footnote-marker')) {
+            return node;
+          }
+          node = node.parentNode;
+        }
+
+        return null;
+      }
+
+      findMarkerInRange(range) {
+        const container = range.commonAncestorContainer;
+
+        if (container.nodeType === Node.ELEMENT_NODE &&
+            container.classList && container.classList.contains('footnote-marker')) {
+          return container;
+        }
+
+        const markers = container.querySelectorAll?.('.footnote-marker');
+        return markers?.[0] || null;
+      }
+
+      getCaretPosition(range) {
+        const block = this.api.blocks.getBlockByIndex(this.api.blocks.getCurrentBlockIndex());
+        if (!block) return 0;
+
+        const blockElement = block.holder;
+        const contentElement = blockElement.querySelector('.ce-paragraph');
+
+        if (!contentElement) return 0;
+
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(contentElement);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+
+        return preCaretRange.toString().length;
+      }
+
+      generateFootnoteId() {
+        return `fn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+
+      renumberAllFootnotes() {
+        try {
+          const blocksCount = this.api.blocks.getBlocksCount();
+          let footnoteNumber = 0;
+
+          // Scan through all blocks in order
+          for (let i = 0; i < blocksCount; i++) {
+            const block = this.api.blocks.getBlockByIndex(i);
+            if (!block) continue;
+
+            const blockElement = block.holder;
+            const markers = blockElement.querySelectorAll('.footnote-marker');
+
+            // Update each marker in this block
+            markers.forEach(marker => {
+              footnoteNumber++;
+              marker.textContent = footnoteNumber.toString();
+            });
+          }
+
+          console.debug('[Footnote Tool] Renumbered', footnoteNumber, 'footnotes');
+        } catch (error) {
+          console.error('[Footnote Tool] Error renumbering footnotes:', error);
+        }
+      }
+
+      showFootnoteModal(onSave) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+        `;
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          background: white;
+          border-radius: 8px;
+          padding: 24px;
+          max-width: 500px;
+          width: 90%;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        `;
+
+        modal.innerHTML = `
+          <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Add Footnote</h3>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500;">
+              Citation Content
+            </label>
+            <textarea
+              class="footnote-content-input"
+              placeholder="Enter citation or reference (e.g., Smith, J. et al. (2023). Study Title. Journal Name.)"
+              style="
+                width: 100%;
+                min-height: 100px;
+                padding: 8px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 4px;
+                font-size: 14px;
+                font-family: inherit;
+                resize: vertical;
+                box-sizing: border-box;
+              "
+            ></textarea>
+            <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">
+              Tip: You can paste URLs directly - they'll be automatically converted to clickable links.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button class="footnote-cancel-btn" style="
+              padding: 8px 16px;
+              border: 1px solid #d1d5db;
+              border-radius: 4px;
+              background: white;
+              color: #374151;
+              font-size: 14px;
+              font-weight: 500;
+              cursor: pointer;
+            ">Cancel</button>
+            <button class="footnote-save-btn" style="
+              padding: 8px 16px;
+              border: none;
+              border-radius: 4px;
+              background: #3b82f6;
+              color: white;
+              font-size: 14px;
+              font-weight: 500;
+              cursor: pointer;
+            ">Add Footnote</button>
+          </div>
+        `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        const textarea = modal.querySelector('.footnote-content-input');
+        const saveBtn = modal.querySelector('.footnote-save-btn');
+        const cancelBtn = modal.querySelector('.footnote-cancel-btn');
+
+        setTimeout(() => textarea.focus(), 0);
+
+        const handleSave = () => {
+          const content = textarea.value;
+          onSave(content);
+          overlay.remove();
+        };
+
+        const handleCancel = () => {
+          overlay.remove();
+        };
+
+        saveBtn.addEventListener('click', handleSave);
+        cancelBtn.addEventListener('click', handleCancel);
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            handleCancel();
+          }
+        });
+
+        textarea.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            handleSave();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleCancel();
+          }
+        });
+      }
+
+      clear() {
+        this.state = false;
+      }
+    }
+
+    /**
+     * Custom Paragraph with Footnotes
+     */
+    class ParagraphWithFootnotes {
+      static get toolbox() {
+        return {
+          title: 'Paragraph',
+          icon: '<svg width="17" height="15" viewBox="0 0 336 276" xmlns="http://www.w3.org/2000/svg"><path d="M291 150V79c0-19-15-34-34-34H79c-19 0-34 15-34 34v42l67-44 81 72 56-29 42 30zm0 52l-43-30-56 30-81-67-66 39v23c0 19 15 34 34 34h178c17 0 31-13 34-29zM79 0h178c44 0 79 35 79 79v118c0 44-35 79-79 79H79c-44 0-79-35-79-79V79C0 35 35 0 79 0z"/></svg>'
+        };
+      }
+
+      static get contentless() {
+        return false;
+      }
+
+      static get enableLineBreaks() {
+        return true;
+      }
+
+      static get DEFAULT_PLACEHOLDER() {
+        return 'Start writing or press Tab to add content...';
+      }
+
+      constructor({ data, config, api, readOnly }) {
+        this.api = api;
+        this.readOnly = readOnly;
+
+        this._CSS = {
+          block: this.api.styles.block,
+          wrapper: 'ce-paragraph'
+        };
+
+        if (!this.readOnly) {
+          this.onKeyUp = this.onKeyUp.bind(this);
+        }
+
+        this._placeholder = config.placeholder || ParagraphWithFootnotes.DEFAULT_PLACEHOLDER;
+        this._data = {};
+        this._element = null;
+        this._preserveBlank = config.preserveBlank !== undefined ? config.preserveBlank : false;
+
+        this.data = data;
+      }
+
+      render() {
+        const div = document.createElement('DIV');
+        div.classList.add(this._CSS.wrapper, this._CSS.block);
+        div.contentEditable = !this.readOnly;
+        div.dataset.placeholder = this.api.i18n.t(this._placeholder);
+
+        if (this._data.text) {
+          div.innerHTML = this._data.text;
+        }
+
+        if (!this.readOnly) {
+          div.addEventListener('keyup', this.onKeyUp);
+        }
+
+        this._element = div;
+
+        return div;
+      }
+
+      onKeyUp(event) {
+        if (event.code !== 'Backspace' && event.code !== 'Delete') {
+          return;
+        }
+
+        const { textContent } = this._element;
+
+        if (textContent === '') {
+          this._element.innerHTML = '';
+        }
+      }
+
+      validate(savedData) {
+        if (savedData.text?.trim() === '' && !this._preserveBlank) {
+          return false;
+        }
+
+        return true;
+      }
+
+      save(toolsContent) {
+        // Clone the element to work with it without modifying the DOM
+        const clone = toolsContent.cloneNode(true);
+
+        // Extract footnotes before removing markers
+        const footnotes = this.extractFootnotes(clone);
+
+        // Remove all footnote markers from the clone to get clean text
+        const markers = clone.querySelectorAll('.footnote-marker');
+        markers.forEach(marker => marker.remove());
+
+        const data = {
+          text: clone.innerHTML
+        };
+
+        // Add footnotes array if any exist
+        if (footnotes.length > 0) {
+          data.footnotes = footnotes;
+        }
+
+        return data;
+      }
+
+      extractFootnotes(element) {
+        const footnotes = [];
+        const markers = element.querySelectorAll('.footnote-marker');
+
+        markers.forEach((marker) => {
+          const footnoteId = marker.dataset.footnoteId;
+          const footnoteContent = marker.dataset.footnoteContent;
+
+          if (footnoteId && footnoteContent) {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            range.setEnd(marker, 0);
+            const position = range.toString().length;
+
+            footnotes.push({
+              id: footnoteId,
+              content: footnoteContent,
+              position: position
+            });
+          }
+        });
+
+        return footnotes;
+      }
+
+      merge(data) {
+        const newData = {
+          text: this.data.text + data.text
+        };
+
+        this.data = newData;
+      }
+
+      get data() {
+        let text = this._element ? this._element.innerHTML : this._data.text || '';
+
+        this._data.text = text;
+
+        if (this._element) {
+          const footnotes = this.extractFootnotes(this._element);
+          if (footnotes.length > 0) {
+            this._data.footnotes = footnotes;
+          }
+        }
+
+        return this._data;
+      }
+
+      set data(data) {
+        this._data = data || {};
+
+        if (this._element) {
+          this._element.innerHTML = this._data.text || '';
+        }
+      }
+
+      onPaste(event) {
+        const data = {
+          text: event.detail.data.innerHTML
+        };
+
+        this.data = data;
+      }
+
+      static get conversionConfig() {
+        return {
+          export: 'text',
+          import: 'text'
+        };
+      }
+
+      static get sanitize() {
+        return {
+          text: {
+            br: true,
+            sup: {
+              class: 'footnote-marker',
+              'data-footnote-id': true,
+              'data-footnote-content': true
+            }
+          }
+        };
+      }
+
+      static get isReadOnlySupported() {
+        return true;
+      }
+
+      get currentBlock() {
+        return this.api.blocks.getCurrentBlockIndex();
+      }
+    }
+
+    // Initialize EditorJS
+    try {
+      window.editor = new EditorJS({
+        holder: 'editorjs',
+        placeholder: 'Start writing and add footnotes...',
+        tools: {
+          paragraph: {
+            class: ParagraphWithFootnotes,
+            inlineToolbar: true,
+            config: {
+              placeholder: 'Click to start writing...'
+            }
+          },
+          header: {
+            class: Header,
+            inlineToolbar: true
+          },
+          footnote: {
+            class: FootnoteTool
+          }
+        },
+        data: {
+          blocks: [
+            {
+              type: 'paragraph',
+              data: {
+                text: 'Welcome to the Panda Editor footnote tool test! Select this text and click the footnote button to add a citation.'
+              }
+            }
+          ]
+        },
+        onReady: () => {
+          showStatus('✅ Editor loaded successfully! You can now add footnotes by selecting text and clicking the footnote button.', 'success');
+        }
+      });
+    } catch (error) {
+      showStatus('❌ Error loading editor: ' + error.message, 'error');
+      console.error('Editor initialization error:', error);
+    }
+
+    // Save function
+    window.saveData = async function() {
+      try {
+        const outputData = await window.editor.save();
+        document.getElementById('output').textContent = JSON.stringify(outputData, null, 2);
+
+        renderPreview(outputData);
+        showStatus('✅ Data saved successfully!', 'success');
+      } catch (error) {
+        console.error('Saving failed: ', error);
+        document.getElementById('output').textContent = 'Error: ' + error.message;
+        showStatus('❌ Error saving: ' + error.message, 'error');
+      }
+    };
+
+    // Clear function
+    window.clearEditor = async function() {
+      await window.editor.clear();
+      document.getElementById('output').textContent = 'Editor cleared.';
+      document.getElementById('rendered').innerHTML = 'The rendered HTML will appear here after you save...';
+      showStatus('Editor cleared.', 'info');
+    };
+
+    // Load sample function
+    window.loadSample = async function() {
+      await window.editor.render({
+        blocks: [
+          {
+            type: 'paragraph',
+            data: {
+              text: 'Climate change has accelerated significantly since 1980 with global temperatures rising 1.1°C above pre-industrial levels.',
+              footnotes: [
+                {
+                  id: 'fn-sample-1',
+                  content: 'IPCC. (2023). Climate Change 2023: Synthesis Report. https://www.ipcc.ch/report/ar6/syr/',
+                  position: 57
+                },
+                {
+                  id: 'fn-sample-2',
+                  content: 'NASA. (2023). Global Climate Change: Vital Signs of the Planet.',
+                  position: 116
+                }
+              ]
+            }
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: 'Renewable energy adoption has increased dramatically in recent years.'
+            }
+          }
+        ]
+      });
+      showStatus('Sample data loaded with two footnotes.', 'success');
+    };
+
+    // Render preview (simulated Ruby rendering)
+    window.renderPreview = function(data) {
+      let html = '';
+      const allFootnotes = [];
+      let footnoteCounter = 0;
+
+      // First pass: collect all footnotes with their block index and assign numbers
+      data.blocks.forEach((block, blockIndex) => {
+        if (block.type === 'paragraph' && block.data.footnotes && block.data.footnotes.length > 0) {
+          // Sort by position ascending (reading order) to assign numbers correctly
+          const sortedForNumbering = [...block.data.footnotes].sort((a, b) => a.position - b.position);
+
+          sortedForNumbering.forEach(fn => {
+            footnoteCounter++;
+            allFootnotes.push({
+              blockIndex: blockIndex,
+              footnote: fn,
+              number: footnoteCounter
+            });
+          });
+        }
+      });
+
+      // Second pass: render blocks with correct footnote numbers
+      data.blocks.forEach((block, blockIndex) => {
+        if (block.type === 'paragraph') {
+          let text = block.data.text;
+
+          if (block.data.footnotes && block.data.footnotes.length > 0) {
+            // Get footnotes for this block with their assigned numbers
+            const blockFootnotes = allFootnotes
+              .filter(item => item.blockIndex === blockIndex)
+              .sort((a, b) => b.footnote.position - a.footnote.position); // Sort descending for insertion
+
+            blockFootnotes.forEach(item => {
+              const marker = `<sup id="fnref:${item.number}"><a href="#fn:${item.number}" class="footnote" style="color: #3b82f6; text-decoration: none;">${item.number}</a></sup>`;
+              text = text.slice(0, item.footnote.position) + marker + text.slice(item.footnote.position);
+            });
+          }
+
+          html += `<p>${text}</p>`;
+        } else if (block.type === 'header') {
+          html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
+        }
+      });
+
+      // Render footnotes section in correct order
+      if (allFootnotes.length > 0) {
+        html += '<div style="margin-top: 30px; padding: 20px; background: #f9fafb; border-radius: 8px;">';
+        html += '<h3 style="margin: 0 0 15px 0; font-size: 16px;">Sources/References</h3>';
+        html += '<ol style="margin: 0; padding-left: 20px; line-height: 1.8;">';
+
+        // Sort by number to ensure correct order
+        allFootnotes.sort((a, b) => a.number - b.number).forEach(item => {
+          html += `<li id="fn:${item.number}" style="margin-bottom: 10px;">`;
+          html += `<p style="margin: 0;">${item.footnote.content} <a href="#fnref:${item.number}" style="color: #3b82f6; text-decoration: none;">↩</a></p>`;
+          html += '</li>';
+        });
+        html += '</ol></div>';
+      }
+
+      document.getElementById('rendered').innerHTML = html || 'No content yet.';
+    };
+
+    console.log('✅ Panda Editor footnote test loaded successfully!');
+    console.log('Editor instance available as window.editor');
+  </script>
+</body>
+</html>
