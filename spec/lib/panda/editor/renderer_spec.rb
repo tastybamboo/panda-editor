@@ -722,11 +722,11 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       output = renderer.render
 
       # Both should reference footnote 1
-      expect(output.scan(/fnref:1/).length).to eq(4) # 2 markers + 2 in li ids
-      expect(output.scan(/fn:1/).length).to eq(4)     # 2 hrefs + 2 in sup ids
+      expect(output.scan("fnref:1").length).to eq(4) # 2 markers + 2 in li ids
+      expect(output.scan("fn:1").length).to eq(4)     # 2 hrefs + 2 in sup ids
 
       # Only one entry in sources
-      expect(output.scan(/Important study/).length).to eq(1)
+      expect(output.scan("Important study").length).to eq(1)
     end
 
     describe "autolink_urls option" do

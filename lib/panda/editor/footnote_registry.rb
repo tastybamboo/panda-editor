@@ -81,7 +81,7 @@ module Panda
         text.gsub(url_pattern) do |url|
           # Skip if this URL is already part of an href attribute
           before_match = $`
-          if before_match =~ /<a[^>]*href\s*=\s*["']?\z/i
+          if /<a[^>]*href\s*=\s*["']?\z/i.match?(before_match)
             url
           else
             # Add protocol if missing
