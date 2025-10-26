@@ -94,6 +94,12 @@ module Panda
       end
 
       def render_block_with_cache(block)
+        # Don't cache blocks with footnotes - they need to register with the footnote registry
+        if block["data"]["footnotes"].present?
+          renderer = renderer_for(block)
+          return renderer.render
+        end
+
         cache_key = "editor_js_block/#{block["type"]}/#{Digest::MD5.hexdigest(block["data"].to_json)}"
 
         cache_store.fetch(cache_key) do

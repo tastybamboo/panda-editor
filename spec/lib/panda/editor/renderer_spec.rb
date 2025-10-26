@@ -722,8 +722,8 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       output = renderer.render
 
       # Both should reference footnote 1
-      expect(output.scan("fnref:1").length).to eq(4) # 2 markers + 2 in li ids
-      expect(output.scan("fn:1").length).to eq(4)     # 2 hrefs + 2 in sup ids
+      expect(output.scan("fnref:1").length).to eq(3) # 2 markers + 1 in backref
+      expect(output.scan("fn:1").length).to eq(3)     # 2 hrefs + 1 in li id
 
       # Only one entry in sources
       expect(output.scan("Important study").length).to eq(1)
@@ -864,7 +864,8 @@ class Component
     when "main"
       %(<main class="two-column-layout">#{@data}</main>)
     when "footer"
-      %(<footer class="#{@config[:minimal] ? "minimal-footer" : ""}">#{@data}</footer>)
+      footer_class = @config[:minimal] ? ' class="minimal-footer"' : ""
+      %(<footer#{footer_class}>#{@data}</footer>)
     end
   end
 end
