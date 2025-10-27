@@ -185,6 +185,30 @@ export const EDITOR_JS_CSS = `
     margin: 0 !important;
     padding: 0 !important;
   }
+
+  /* Footnote marker styles */
+  .footnote-marker {
+    display: inline-block;
+    color: #3b82f6;
+    font-size: 0.75em;
+    font-weight: 600;
+    vertical-align: super;
+    cursor: pointer;
+    padding: 0 2px;
+    user-select: none;
+    margin-left: 1px;
+  }
+
+  .footnote-marker:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  /* Inline toolbar button for footnote */
+  .ce-inline-tool--footnote svg {
+    width: 17px;
+    height: 17px;
+  }
 `
 
 export const getEditorConfig = (elementId, previousData, doc = document) => {
@@ -230,7 +254,7 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
         }
       },
       paragraph: {
-        class: win.Paragraph,
+        class: win.ParagraphWithFootnotes || win.Paragraph,
         inlineToolbar: true,
         config: {
           placeholder: 'Start writing or press Tab to add content...'
@@ -276,6 +300,9 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
             vimeo: true
           }
         }
+      },
+      footnote: {
+        class: win.FootnoteTool
       }
     }
   }

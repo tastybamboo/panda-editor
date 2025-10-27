@@ -211,7 +211,7 @@ export class EditorJSInitializer {
         placeholder: 'Click to start writing...',
         tools: {
           paragraph: {
-            class: win.Paragraph,
+            class: win.ParagraphWithFootnotes || win.Paragraph,
             inlineToolbar: true,
             config: {
               preserveBlank: true,
@@ -242,6 +242,9 @@ export class EditorJSInitializer {
               quotePlaceholder: 'Enter a quote',
               captionPlaceholder: 'Quote\'s author'
             }
+          },
+          footnote: {
+            class: win.FootnoteTool
           }
         },
         onChange: (api, event) => {

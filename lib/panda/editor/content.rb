@@ -36,11 +36,13 @@ module Panda
       end
 
       def generate_cached_content
+        renderer_options = {autolink_urls: true}
+
         if content.is_a?(String)
           begin
             parsed_content = JSON.parse(content)
             self.cached_content = if parsed_content.is_a?(Hash) && parsed_content["blocks"].present?
-              Panda::Editor::Renderer.new(parsed_content).render
+              Panda::Editor::Renderer.new(parsed_content, renderer_options).render
             else
               content
             end
@@ -50,7 +52,7 @@ module Panda
           end
         elsif content.is_a?(Hash) && content["blocks"].present?
           # Process EditorJS content
-          self.cached_content = Panda::Editor::Renderer.new(content).render
+          self.cached_content = Panda::Editor::Renderer.new(content, renderer_options).render
         else
           # For any other case, store as is
           self.cached_content = content.to_s

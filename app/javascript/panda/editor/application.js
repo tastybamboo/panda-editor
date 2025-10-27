@@ -4,14 +4,22 @@
 import { EditorJSInitializer } from "./editor_js_initializer"
 import { EditorJSConfig } from "./editor_js_config"
 import { RichTextEditor } from "./rich_text_editor"
+import FootnoteTool from "./tools/footnote_tool"
+import ParagraphWithFootnotes from "./tools/paragraph_with_footnotes"
 
 // Export for global access
 window.PandaEditor = {
   EditorJSInitializer,
   EditorJSConfig,
   RichTextEditor,
+  FootnoteTool,
+  ParagraphWithFootnotes,
   VERSION: "0.1.0"
 }
+
+// Make tools available globally for EditorJS
+window.FootnoteTool = FootnoteTool
+window.ParagraphWithFootnotes = ParagraphWithFootnotes
 
 // Auto-initialize on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {

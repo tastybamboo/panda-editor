@@ -5,7 +5,7 @@ require "sanitize"
 module Panda
   module Editor
     class Renderer
-      attr_reader :content, :options, :custom_renderers, :cache_store
+      attr_reader :content, :options, :custom_renderers, :cache_store, :footnote_registry
 
       def initialize(content, options = {})
         @content = content
@@ -13,6 +13,9 @@ module Panda
         @custom_renderers = options.delete(:custom_renderers) || {}
         @cache_store = options.delete(:cache_store) || Rails.cache
         @validate_html = options.delete(:validate_html) || false
+        autolink_urls = options.delete(:autolink_urls) || false
+        @footnote_registry = FootnoteRegistry.new(autolink_urls: autolink_urls)
+        @options[:footnote_registry] = @footnote_registry
       end
 
       def render
@@ -24,6 +27,13 @@ module Panda
         end.join("\n")
 
         rendered = @validate_html ? validate_html(rendered) : rendered
+
+        # Append sources section if footnotes were collected
+        if @footnote_registry.any?
+          sources_section = @footnote_registry.render_sources_section
+          rendered = [rendered, sources_section].join("\n")
+        end
+
         rendered.presence || ""
       end
 
@@ -84,6 +94,12 @@ module Panda
       end
 
       def render_block_with_cache(block)
+        # Don't cache blocks with footnotes - they need to register with the footnote registry
+        if block["data"]["footnotes"].present?
+          renderer = renderer_for(block)
+          return renderer.render
+        end
+
         cache_key = "editor_js_block/#{block["type"]}/#{Digest::MD5.hexdigest(block["data"].to_json)}"
 
         cache_store.fetch(cache_key) do
