@@ -1,10 +1,20 @@
 # frozen_string_literal: true
 
+require "dry-configurable"
 require_relative "editor/version"
 require_relative "editor/engine"
 
 module Panda
   module Editor
+    extend Dry::Configurable
+
+    # EditorJS configuration
+    setting :editor_js_tools, default: []
+    setting :editor_js_tool_config, default: {}
+
+    # Custom block renderers
+    setting :custom_renderers, default: {}
+
     class Error < StandardError; end
 
     # Autoload components

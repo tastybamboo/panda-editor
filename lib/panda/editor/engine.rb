@@ -12,12 +12,6 @@ module Panda
         g.test_framework :rspec
       end
 
-      # Allow applications to configure editor tools
-      config.editor_js_tools = []
-
-      # Custom block renderers
-      config.custom_renderers = {}
-
       initializer "panda_editor.assets" do |app|
         next unless app.config.respond_to?(:assets)
 

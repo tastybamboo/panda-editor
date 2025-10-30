@@ -5,8 +5,8 @@ require_relative "lib/panda/editor/version"
 Gem::Specification.new do |spec|
   spec.name = "panda-editor"
   spec.version = Panda::Editor::VERSION
-  spec.authors = ["Panda CMS Team"]
-  spec.email = ["hello@pandacms.io"]
+  spec.authors = ["Otaina Limited", "James Inman"]
+  spec.email = ["james@otaina.co.uk"]
 
   spec.summary = "EditorJS integration for Rails applications"
   spec.description = "A modular, extensible rich text editor using EditorJS for Rails applications. Extracted from Panda CMS."
@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   # Rails dependencies
   spec.add_dependency "rails", ">= 7.1"
   spec.add_dependency "sanitize", "~> 6.0"
+  spec.add_dependency "dry-configurable", "~> 1.0"
 
   # Development dependencies
   spec.add_development_dependency "rspec-rails", "~> 6.0"
