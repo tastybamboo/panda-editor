@@ -14,7 +14,8 @@ module Panda
         @cache_store = options.delete(:cache_store) || Rails.cache
         @validate_html = options.delete(:validate_html) || false
         autolink_urls = options.delete(:autolink_urls) || false
-        @footnote_registry = FootnoteRegistry.new(autolink_urls: autolink_urls)
+        markdown = options.delete(:markdown) || false
+        @footnote_registry = FootnoteRegistry.new(autolink_urls: autolink_urls, markdown: markdown)
         @options[:footnote_registry] = @footnote_registry
       end
 

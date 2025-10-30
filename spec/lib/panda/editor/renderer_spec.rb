@@ -833,6 +833,193 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         expect(output).to include('<a href="https://another.org" target="_blank" rel="noopener noreferrer">https://another.org</a>')
       end
     end
+
+    describe "markdown option" do
+      let(:content_with_markdown) do
+        {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Research on ADHD",
+                "footnotes" => [
+                  {
+                    "id" => "fn-markdown",
+                    "content" => "Smith, J. (2023). **Important study** on *ADHD treatment*. See https://example.com for details.",
+                    "position" => 16
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      end
+
+      it "renders markdown formatting when markdown is true" do
+        renderer = described_class.new(content_with_markdown, markdown: true)
+        output = renderer.render
+
+        # Check that markdown was processed
+        expect(output).to include("<strong>Important study</strong>")
+        expect(output).to include("<em>ADHD treatment</em>")
+        # Markdown's autolink should handle the URL
+        expect(output).to include('<a href="https://example.com"')
+      end
+
+      it "does not render markdown when markdown is false" do
+        renderer = described_class.new(content_with_markdown, markdown: false)
+        output = renderer.render
+
+        # Check that markdown was NOT processed
+        expect(output).to include("**Important study**")
+        expect(output).to include("*ADHD treatment*")
+        expect(output).not_to include("<strong>")
+        expect(output).not_to include("<em>")
+      end
+
+      it "does not render markdown when markdown is not specified" do
+        renderer = described_class.new(content_with_markdown)
+        output = renderer.render
+
+        # Check that markdown was NOT processed (default behavior)
+        expect(output).to include("**Important study**")
+        expect(output).to include("*ADHD treatment*")
+      end
+
+      it "renders inline code with markdown" do
+        content = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-code",
+                    "content" => "Use the `process()` function for data processing.",
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        renderer = described_class.new(content, markdown: true)
+        output = renderer.render
+
+        expect(output).to include("<code>process()</code>")
+      end
+
+      it "renders strikethrough with markdown" do
+        content = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-strike",
+                    "content" => "This is ~~incorrect~~ information.",
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        renderer = described_class.new(content, markdown: true)
+        output = renderer.render
+
+        expect(output).to include("<del>incorrect</del>")
+      end
+
+      it "handles markdown links with proper attributes" do
+        content = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-link",
+                    "content" => "See [this study](https://example.com) for more information.",
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        renderer = described_class.new(content, markdown: true)
+        output = renderer.render
+
+        # Check that markdown link was rendered with proper attributes
+        expect(output).to include('<a href="https://example.com" target="_blank" rel="noopener noreferrer">this study</a>')
+      end
+
+      it "can use both markdown and autolink_urls together" do
+        content = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-both",
+                    "content" => "Plain text with https://example.com URL",
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        # When both markdown and autolink_urls are true, markdown processes first,
+        # then autolink_urls runs (but skips already-linked URLs)
+        renderer = described_class.new(content, markdown: true, autolink_urls: true)
+        output = renderer.render
+
+        # URL should be linked (by markdown's autolink)
+        expect(output).to include('<a href="https://example.com"')
+        # Should only have one link tag (not doubled)
+        expect(output.scan(/<a[^>]*href="https:\/\/example\.com"/).length).to eq(1)
+      end
+
+      it "strips wrapping paragraph tags from markdown output" do
+        content = {
+          "blocks" => [
+            {
+              "type" => "paragraph",
+              "data" => {
+                "text" => "Test",
+                "footnotes" => [
+                  {
+                    "id" => "fn-para",
+                    "content" => "Simple footnote text.",
+                    "position" => 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        renderer = described_class.new(content, markdown: true)
+        output = renderer.render
+
+        # The markdown processor wraps content in <p> tags, but we strip them
+        # since the template already provides <p> tags
+        # Should not have nested <p> tags
+        expect(output).not_to match(/<p>.*<p>.*Simple footnote text.*<\/p>.*<\/p>/m)
+      end
+    end
   end
 end
 

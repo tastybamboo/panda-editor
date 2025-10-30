@@ -308,9 +308,58 @@ insert at position 11: "Hello world<sup>2</sup>"
 insert at position 5: "Hello<sup>1</sup> world<sup>2</sup>"
 ```
 
+### Markdown Support
+
+The footnote system supports markdown formatting, allowing you to use rich text formatting in your citations.
+
+**Enable markdown:**
+
+```ruby
+renderer = Panda::Editor::Renderer.new(content, markdown: true)
+output = renderer.render
+```
+
+**Supported markdown features:**
+
+- **Bold text** (`**bold**` or `__bold__`)
+- *Italic text* (`*italic*` or `_italic_`)
+- `Inline code` (`` `code` ``)
+- ~~Strikethrough~~ (`~~text~~`)
+- [Links](url) (`[text](url)`)
+- Automatic URL linking
+
+**Example:**
+
+```ruby
+content = {
+  "blocks" => [{
+    "type" => "paragraph",
+    "data" => {
+      "text" => "Research findings",
+      "footnotes" => [{
+        "id" => "fn-1",
+        "content" => "Smith, J. (2023). **Important study** on *ADHD treatment*. See https://example.com for details.",
+        "position" => 17
+      }]
+    }
+  }]
+}
+
+renderer = Panda::Editor::Renderer.new(content, markdown: true)
+# Output will include: Smith, J. (2023). <strong>Important study</strong> on <em>ADHD treatment</em>. See <a href="https://example.com">https://example.com</a> for details.
+```
+
+**Important notes:**
+
+- Markdown includes built-in URL autolinking, so you typically don't need `autolink_urls: true` when using markdown
+- However, both options can be used together if needed - the custom autolink_urls will skip URLs that markdown already linked
+- Markdown links are rendered with `target="_blank"` and `rel="noopener noreferrer"` for security
+- Images are disabled in markdown footnotes for security
+- HTML styles are stripped from markdown output
+
 ### Auto-linking URLs
 
-The footnote system can automatically convert plain URLs in footnote content into clickable links.
+The footnote system can automatically convert plain URLs in footnote content into clickable links when markdown is not enabled.
 
 **Enable auto-linking:**
 
@@ -575,7 +624,7 @@ bundle exec rspec spec/lib/panda/editor/renderer_spec.rb
 Potential improvements for future versions:
 
 - [ ] Support for footnotes in other block types (headers, quotes, etc.)
-- [ ] Rich text formatting within footnote content
+- [x] Rich text formatting within footnote content (implemented via markdown support)
 - [ ] Footnote tooltips on hover
 - [ ] Customizable footnote markers (*, †, ‡, etc.)
 - [ ] Export footnotes to bibliography formats (BibTeX, etc.)

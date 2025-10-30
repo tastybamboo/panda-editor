@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rails", ">= 7.1"
   spec.add_dependency "sanitize", "~> 6.0"
   spec.add_dependency "dry-configurable", "~> 1.0"
+  spec.add_dependency "redcarpet", "~> 3.6"
 
   # Development dependencies
   spec.add_development_dependency "rspec-rails", "~> 6.0"

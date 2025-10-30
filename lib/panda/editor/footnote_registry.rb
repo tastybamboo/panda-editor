@@ -1,14 +1,17 @@
 # frozen_string_literal: true
 
+require "redcarpet"
+
 module Panda
   module Editor
     class FootnoteRegistry
       attr_reader :footnotes
 
-      def initialize(autolink_urls: false)
+      def initialize(autolink_urls: false, markdown: false)
         @footnotes = []
         @footnote_ids = {}
         @autolink_urls = autolink_urls
+        @markdown = markdown
       end
 
       def add(id:, content:)
@@ -30,7 +33,7 @@ module Panda
 
         footnote_items = @footnotes.map.with_index do |footnote, index|
           number = index + 1
-          content = @autolink_urls ? autolink_urls(footnote[:content]) : footnote[:content]
+          content = process_content(footnote[:content])
           <<~HTML.strip
             <li id="fn:#{number}">
               <p>
@@ -65,6 +68,45 @@ module Panda
       end
 
       private
+
+      def process_content(content)
+        # Apply markdown processing if enabled
+        content = render_markdown(content) if @markdown
+
+        # Apply URL autolinking if enabled
+        # Note: Markdown already includes autolink, but custom autolink_urls can still be used
+        # if needed for additional URL patterns. The autolink_urls method skips already-linked URLs.
+        content = autolink_urls(content) if @autolink_urls
+
+        content
+      end
+
+      def render_markdown(text)
+        # Configure Redcarpet with safe options for footnotes
+        renderer = Redcarpet::Render::HTML.new(
+          filter_html: false,
+          no_images: true,
+          no_styles: true,
+          safe_links_only: true,
+          link_attributes: {target: "_blank", rel: "noopener noreferrer"}
+        )
+
+        markdown = Redcarpet::Markdown.new(
+          renderer,
+          autolink: true,
+          space_after_headers: true,
+          fenced_code_blocks: false,
+          no_intra_emphasis: true,
+          strikethrough: true,
+          superscript: false,
+          underline: false
+        )
+
+        # Render markdown and strip the wrapping <p> tags if present
+        # since we're already wrapping in <p> tags in the template
+        html = markdown.render(text).strip
+        html.gsub(%r{^<p>(.*)</p>$}m, '\1')
+      end
 
       def autolink_urls(text)
         # Regex to match URLs that aren't already in <a> tags

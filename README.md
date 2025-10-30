@@ -168,6 +168,27 @@ The sources section includes data attributes for integration with JavaScript fra
 
 See [docs/FOOTNOTES.md](docs/FOOTNOTES.md) for detailed implementation examples.
 
+### Markdown Support
+
+Enable markdown formatting in footnote content for rich text citations:
+
+```ruby
+renderer = Panda::Editor::Renderer.new(@content, markdown: true)
+html = renderer.render
+```
+
+Supports **bold**, *italic*, `code`, ~~strikethrough~~, and [links](url):
+
+**Input:**
+```
+Smith, J. (2023). **Important study** on *ADHD treatment*. See https://example.com for details.
+```
+
+**Output:**
+```html
+Smith, J. (2023). <strong>Important study</strong> on <em>ADHD treatment</em>. See <a href="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a> for details.
+```
+
 ### Auto-linking URLs
 
 Enable automatic URL linking in footnote content:
@@ -195,6 +216,9 @@ Features:
 - Won't double-link URLs already in `<a>` tags
 - Supports `http://`, `https://`, `ftp://`, and `www.` URLs
 - Handles multiple URLs in the same footnote
+- Can be combined with `markdown: true` (markdown's autolink runs first, then custom autolink for any remaining URLs)
+
+**Note:** When using `markdown: true`, you typically don't need `autolink_urls: true` as markdown includes built-in autolinking. However, both options can work together safely.
 
 To enable globally for all content using the `Panda::Editor::Content` concern, pass the option in `generate_cached_content`.
 

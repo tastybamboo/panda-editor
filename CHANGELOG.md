@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-10-30
+
+### Added
+- Markdown support for rich text formatting in footnotes
+  - **Bold**, *italic*, `code`, ~~strikethrough~~, and [link](url) support
+  - Automatic URL linking in markdown content
+  - Security-hardened Redcarpet configuration (no images, safe links only)
+  - Works alongside existing autolink_urls option
+  - Comprehensive test coverage for markdown features
+  - Updated documentation with markdown examples
+
 ## [0.3.0] - 2025-10-30
 
 ### Added
