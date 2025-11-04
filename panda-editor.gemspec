@@ -1,43 +1,43 @@
 # frozen_string_literal: true
 
-require_relative "lib/panda/editor/version"
+require_relative 'lib/panda/editor/version'
 
 Gem::Specification.new do |spec|
-  spec.name = "panda-editor"
+  spec.name = 'panda-editor'
   spec.version = Panda::Editor::VERSION
-  spec.authors = ["Otaina Limited", "James Inman"]
-  spec.email = ["james@otaina.co.uk"]
+  spec.authors = ['Otaina Limited', 'James Inman']
+  spec.email = ['james@otaina.co.uk']
 
-  spec.summary = "EditorJS integration for Rails applications"
-  spec.description = "A modular, extensible rich text editor using EditorJS for Rails applications. Extracted from Panda CMS."
-  spec.homepage = "https://github.com/tastybamboo/panda-editor"
-  spec.license = "BSD-3-Clause"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.summary = 'EditorJS integration for Rails applications'
+  spec.description = 'A modular, extensible rich text editor using EditorJS for Rails applications. Extracted from Panda CMS.'
+  spec.homepage = 'https://github.com/tastybamboo/panda-editor'
+  spec.license = 'BSD-3-Clause'
+  spec.required_ruby_version = '>= 3.2.0'
 
-  spec.metadata["allowed_push_host"] = "https://rubygems.org"
-  spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/tastybamboo/panda-editor"
-  spec.metadata["changelog_uri"] = "https://github.com/tastybamboo/panda-editor/blob/main/CHANGELOG.md"
+  spec.metadata['allowed_push_host'] = 'https://rubygems.org'
+  spec.metadata['homepage_uri'] = spec.homepage
+  spec.metadata['source_code_uri'] = 'https://github.com/tastybamboo/panda-editor'
+  spec.metadata['changelog_uri'] = 'https://github.com/tastybamboo/panda-editor/blob/main/CHANGELOG.md'
 
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z`.split("\x0").reject do |f|
       (File.expand_path(f) == __FILE__) ||
         f.start_with?(*%w[bin/ test/ spec/ features/ .git .github appveyor Gemfile]) ||
-        f.end_with?(".gem")
+        f.end_with?('.gem')
     end
   end
-  spec.bindir = "exe"
+  spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
-  spec.require_paths = ["lib"]
+  spec.require_paths = ['lib']
 
   # Rails dependencies
-  spec.add_dependency "rails", ">= 7.1"
-  spec.add_dependency "sanitize", "~> 6.0"
-  spec.add_dependency "dry-configurable", "~> 1.0"
-  spec.add_dependency "redcarpet", "~> 3.6"
+  spec.add_dependency 'dry-configurable', '~> 1.0'
+  spec.add_dependency 'rails', '>= 7.1'
+  spec.add_dependency 'redcarpet', '~> 3.6'
+  spec.add_dependency 'sanitize', '~> 6.0'
 
   # Development dependencies
-  spec.add_development_dependency "rspec-rails", "~> 6.0"
-  spec.add_development_dependency "factory_bot_rails", "~> 6.2"
-  spec.add_development_dependency "standard", ">= 1.35.1"
+  spec.add_development_dependency 'factory_bot_rails', '~> 6.2'
+  spec.add_development_dependency 'rspec-rails', '~> 6.0'
+  spec.add_development_dependency 'standard', '>= 1.35.1'
 end

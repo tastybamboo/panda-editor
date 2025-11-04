@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "redcarpet"
+require 'redcarpet'
 
 module Panda
   module Editor
@@ -19,7 +19,7 @@ module Panda
         return @footnote_ids[id] if @footnote_ids[id]
 
         # Add new footnote
-        @footnotes << {id: id, content: content}
+        @footnotes << { id: id, content: content }
         number = @footnotes.length
 
         # Cache the number for this ID
@@ -29,7 +29,7 @@ module Panda
       end
 
       def render_sources_section
-        return "" if @footnotes.empty?
+        return '' if @footnotes.empty?
 
         footnote_items = @footnotes.map.with_index do |footnote, index|
           number = index + 1
@@ -88,7 +88,7 @@ module Panda
           no_images: true,
           no_styles: true,
           safe_links_only: true,
-          link_attributes: {target: "_blank", rel: "noopener noreferrer"}
+          link_attributes: { target: '_blank', rel: 'noopener noreferrer' }
         )
 
         markdown = Redcarpet::Markdown.new(
@@ -122,12 +122,12 @@ module Panda
         # Don't replace URLs that are already in <a> tags
         text.gsub(url_pattern) do |url|
           # Skip if this URL is already part of an href attribute
-          before_match = $`
+          before_match = ::Regexp.last_match.pre_match
           if /<a[^>]*href\s*=\s*["']?\z/i.match?(before_match)
             url
           else
             # Add protocol if missing
-            full_url = url.start_with?("www.") ? "https://#{url}" : url
+            full_url = url.start_with?('www.') ? "https://#{url}" : url
             %(<a href="#{full_url}" target="_blank" rel="noopener noreferrer">#{url}</a>)
           end
         end

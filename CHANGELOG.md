@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-11-04
+
+### Fixed
+- Code quality improvements with Rubocop auto-corrections
+  - Fixed 1263 style violations across the codebase
+  - Converted double-quoted strings to single quotes where appropriate
+  - Improved code consistency and readability
+  - Corrected string literal usage throughout
+  - Fixed extra spacing and formatting issues
+
+### Changed
+- All tests passing (53 examples, 0 failures)
+- Improved code maintainability
+
 ## [0.4.0] - 2025-10-30
 
 ### Added

@@ -15,7 +15,7 @@ module Panda
         end
 
         def render
-          ""
+          ''
         end
 
         protected

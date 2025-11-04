@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "json"
+require 'json'
 
 module Panda
   module Editor
@@ -36,21 +36,21 @@ module Panda
       end
 
       def generate_cached_content
-        renderer_options = {autolink_urls: true}
+        renderer_options = { autolink_urls: true }
 
         if content.is_a?(String)
           begin
             parsed_content = JSON.parse(content)
-            self.cached_content = if parsed_content.is_a?(Hash) && parsed_content["blocks"].present?
-              Panda::Editor::Renderer.new(parsed_content, renderer_options).render
-            else
-              content
-            end
+            self.cached_content = if parsed_content.is_a?(Hash) && parsed_content['blocks'].present?
+                                    Panda::Editor::Renderer.new(parsed_content, renderer_options).render
+                                  else
+                                    content
+                                  end
           rescue JSON::ParserError
             # If it's not JSON, treat it as plain text
             self.cached_content = content
           end
-        elsif content.is_a?(Hash) && content["blocks"].present?
+        elsif content.is_a?(Hash) && content['blocks'].present?
           # Process EditorJS content
           self.cached_content = Panda::Editor::Renderer.new(content, renderer_options).render
         else

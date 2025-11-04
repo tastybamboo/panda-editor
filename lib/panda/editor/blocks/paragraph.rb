@@ -5,10 +5,10 @@ module Panda
     module Blocks
       class Paragraph < Base
         def render
-          content = sanitize(data["text"])
-          return "" if content.blank?
+          content = sanitize(data['text'])
+          return '' if content.blank?
 
-          content = inject_footnotes(content) if data["footnotes"].present?
+          content = inject_footnotes(content) if data['footnotes'].present?
 
           html_safe("<p>#{content}</p>")
         end
@@ -16,15 +16,15 @@ module Panda
         private
 
         def inject_footnotes(text)
-          return text unless data["footnotes"].is_a?(Array)
+          return text unless data['footnotes'].is_a?(Array)
 
           # Sort footnotes by position in descending order to avoid position shifts
-          footnotes = data["footnotes"].sort_by { |fn| -fn["position"].to_i }
+          footnotes = data['footnotes'].sort_by { |fn| -fn['position'].to_i }
 
           footnotes.each do |footnote|
-            position = footnote["position"].to_i
+            position = footnote['position'].to_i
             # Skip if position is beyond text length
-            next if position < 0 || position > text.length
+            next if position.negative? || position > text.length
 
             # Register footnote with renderer's footnote registry
             footnote_number = register_footnote(footnote)
@@ -34,7 +34,7 @@ module Panda
             marker = "<sup id=\"fnref:#{footnote_number}\"><a href=\"#fn:#{footnote_number}\" class=\"footnote\">#{footnote_number}</a></sup>"
 
             # Insert marker at position
-            text = text.insert(position, marker)
+            text.insert(position, marker)
           end
 
           text
@@ -44,8 +44,8 @@ module Panda
           return nil unless options[:footnote_registry]
 
           options[:footnote_registry].add(
-            id: footnote["id"],
-            content: footnote["content"]
+            id: footnote['id'],
+            content: footnote['content']
           )
         end
       end
