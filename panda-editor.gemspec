@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
 
   # Rails dependencies
   spec.add_dependency 'dry-configurable', '~> 1.0'
+  spec.add_dependency 'nokogiri', '~> 1.15'
   spec.add_dependency 'rails', '>= 7.1'
   spec.add_dependency 'redcarpet', '~> 3.6'
   spec.add_dependency 'sanitize', '~> 6.0'

@@ -17,10 +17,12 @@ module Panda
 
     class Error < StandardError; end
 
-    # Autoload components
-    autoload :Renderer, 'panda/editor/renderer'
-    autoload :Content, 'panda/editor/content'
-    autoload :FootnoteRegistry, 'panda/editor/footnote_registry'
+    # Require components
+    require_relative 'editor/renderer'
+    require_relative 'editor/content'
+    require_relative 'editor/footnote_registry'
+    require_relative 'editor/markdown_to_editor_js_converter'
+    require_relative 'editor/html_to_editor_js_converter'
 
     module Blocks
       autoload :Base, 'panda/editor/blocks/base'

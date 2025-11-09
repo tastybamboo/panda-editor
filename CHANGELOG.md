@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-11-09
+
+### Added
+
+- HTML to EditorJS converter for importing existing HTML content
+  - Supports headers (h1-h6), paragraphs, lists (ordered/unordered), quotes, code blocks, tables, and delimiters
+  - Preserves inline formatting (bold, italic, links, etc.) as HTML
+  - Handles edge cases: empty content, malformed HTML, special characters, whitespace
+  - Comprehensive test coverage (22 examples)
+  - Available as `Panda::Editor::HtmlToEditorJsConverter.convert(html)`
+- Markdown to EditorJS converter for importing Markdown content
+  - Uses Redcarpet to parse markdown to HTML, then converts to EditorJS
+  - Supports all standard markdown features: headers, paragraphs, lists, code blocks, tables, blockquotes
+  - Includes advanced features: superscript, footnotes, strikethrough, autolinks
+  - Security-hardened with noopener/noreferrer on links
+  - Comprehensive test coverage (26 examples)
+  - Available as `Panda::Editor::MarkdownToEditorJsConverter.convert(markdown)`
+- Added nokogiri as explicit dependency (required for HTML parsing)
+
 ## [0.5.0] - 2025-11-04
 
 ### Fixed

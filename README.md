@@ -55,6 +55,74 @@ renderer = Panda::Editor::Renderer.new(@post.content)
 <%= raw renderer.render %>
 ```
 
+### Converting Content to EditorJS
+
+Panda Editor includes converters for importing existing HTML or Markdown content into EditorJS format:
+
+#### From HTML
+
+```ruby
+html = '<h1>Article Title</h1><p>Introduction with <strong>bold</strong> text.</p><ul><li>Point 1</li><li>Point 2</li></ul>'
+editor_data = Panda::Editor::HtmlToEditorJsConverter.convert(html)
+
+# Save to your model
+@post.content = editor_data
+@post.save
+```
+
+**Supported HTML elements:**
+
+- Headers (h1-h6)
+- Paragraphs with inline formatting (bold, italic, links, etc.)
+- Ordered and unordered lists
+- Blockquotes
+- Code blocks (pre/code)
+- Tables (with or without headers)
+- Horizontal rules (converted to delimiters)
+
+#### From Markdown
+
+```ruby
+markdown = <<~MD
+  # Article Title
+
+  Introduction with **bold** and *italic* text.
+
+  - Point 1
+  - Point 2
+
+  > A famous quote
+
+  ```ruby
+  def hello
+    puts "world"
+  end
+  ```
+MD
+
+editor_data = Panda::Editor::MarkdownToEditorJsConverter.convert(markdown)
+
+# Save to your model
+@post.content = editor_data
+@post.save
+```
+
+**Supported Markdown features:**
+
+- Headers (# through ######)
+- Paragraphs with inline formatting (\*\*bold\*\*, \*italic\*, \`code\`, \~\~strikethrough\~\~)
+- Links (with automatic noopener/noreferrer for security)
+- Ordered and unordered lists
+- Blockquotes
+- Fenced and indented code blocks
+- Tables (GitHub-flavored markdown)
+- Horizontal rules
+- Superscript (^2)
+- Footnotes
+- Automatic URL linking
+
+Both converters return a hash in EditorJS format that can be saved directly to your content field.
+
 ### JavaScript Integration
 
 In your application.js:

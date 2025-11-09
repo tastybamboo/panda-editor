@@ -12,6 +12,12 @@ module Panda
         g.test_framework :rspec
       end
 
+      # Eager load converter classes
+      config.to_prepare do
+        require 'panda/editor/markdown_to_editor_js_converter'
+        require 'panda/editor/html_to_editor_js_converter'
+      end
+
       initializer 'panda_editor.assets' do |app|
         next unless app.config.respond_to?(:assets)
 
