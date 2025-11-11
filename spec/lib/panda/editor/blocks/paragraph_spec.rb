@@ -69,7 +69,8 @@ RSpec.describe Panda::Editor::Blocks::Paragraph, :editorjs do
 
     it 'injects footnote markers at correct position' do
       rendered = described_class.new(paragraph_with_footnote, options).render
-      expect(rendered).to include('<sup id="fnref:1">')
+      expect(rendered).to include('<sup id="fnref:1"')
+      expect(rendered).to include('class="footnote-ref"')
       expect(rendered).to include('<a href="#fn:1" class="footnote">1</a>')
     end
 
@@ -114,6 +115,37 @@ RSpec.describe Panda::Editor::Blocks::Paragraph, :editorjs do
       rendered = described_class.new(simple_paragraph, options).render
       expect(normalize_html(rendered)).to eq(normalize_html('<p>Simple paragraph text</p>'))
       expect(footnote_registry.footnotes).to be_empty
+    end
+
+    it 'includes tooltip content in data attribute' do
+      rendered = described_class.new(paragraph_with_footnote, options).render
+      expect(rendered).to include('data-footnote-content=')
+      expect(rendered).to include('Study reference needed for ADHD self-harm statistic.')
+    end
+
+    it 'includes tooltip content in title attribute for native browser tooltip' do
+      rendered = described_class.new(paragraph_with_footnote, options).render
+      expect(rendered).to include('title=')
+      expect(rendered).to include('Study reference needed for ADHD self-harm statistic.')
+    end
+
+    it 'escapes HTML in tooltip attributes' do
+      paragraph_with_html_content = {
+        'text' => 'Testing HTML escaping',
+        'footnotes' => [
+          {
+            'id' => 'fn-html-test',
+            'content' => '<strong>Bold</strong> & "quoted" content',
+            'position' => 7  # After "Testing"
+          }
+        ]
+      }
+      rendered = described_class.new(paragraph_with_html_content, options).render
+      # Verify that HTML is properly escaped in attributes to prevent XSS
+      expect(rendered).to be_present
+      expect(rendered).to include('data-footnote-content=')
+      # HTML should be escaped for safety (< becomes &lt;, etc.)
+      expect(rendered).to match(/data-footnote-content=["'][^"']*&lt;strong&gt;/)
     end
   end
 end

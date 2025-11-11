@@ -29,6 +29,7 @@ The footnote system consists of three main components:
 - 📍 **Position-based injection**: Place footnote markers at any character position
 - 🎨 **Collapsible UI**: Clean, accessible sources section
 - 🔗 **Bidirectional links**: Navigate between citations and sources
+- 💬 **Hover tooltips**: Preview footnote content without scrolling to sources
 
 ## How It Works
 
@@ -181,9 +182,16 @@ Both paragraphs will reference the same footnote number, and the source will app
 
 ### Inline Markers
 
+Footnote markers include native browser tooltips and data attributes for custom tooltip implementations:
+
 ```html
-<p>Climate change has accelerated significantly since 1980<sup id="fnref:1"><a href="#fn:1" class="footnote">1</a></sup></p>
+<p>Climate change has accelerated significantly since 1980<sup id="fnref:1" class="footnote-ref" data-footnote-content="IPCC. (2023). Climate Change 2023: Synthesis Report." title="IPCC. (2023). Climate Change 2023: Synthesis Report."><a href="#fn:1" class="footnote">1</a></sup></p>
 ```
+
+**Tooltip Attributes:**
+- `class="footnote-ref"` - Identifies footnote markers for styling
+- `data-footnote-content` - Contains processed footnote content (with markdown/HTML if enabled) for custom tooltips
+- `title` - Contains plain text version for native browser tooltips on hover
 
 ### Sources Section
 
@@ -442,6 +450,91 @@ def generate_cached_content
 end
 ```
 
+## Tooltips
+
+Footnote markers automatically include tooltip support through two mechanisms:
+
+### Native Browser Tooltips
+
+The `title` attribute provides instant, zero-JavaScript tooltips:
+
+```html
+<sup title="IPCC. (2023). Climate Change 2023: Synthesis Report.">
+  <a href="#fn:1" class="footnote">1</a>
+</sup>
+```
+
+This works immediately in all browsers with no additional code required. However, native tooltips have limitations:
+- Cannot contain HTML formatting
+- Limited styling options
+- Inconsistent behavior across browsers
+
+### Custom Tooltips
+
+For richer tooltips, use the `data-footnote-content` attribute with your preferred tooltip library:
+
+**With Tippy.js:**
+
+```javascript
+import tippy from 'tippy.js'
+import 'tippy.js/dist/tippy.css'
+
+// Initialize tooltips for all footnote markers
+tippy('[data-footnote-content]', {
+  content: (reference) => reference.getAttribute('data-footnote-content'),
+  allowHTML: true,
+  theme: 'light',
+  placement: 'top',
+  maxWidth: 400
+})
+```
+
+**With Bootstrap:**
+
+```javascript
+// Initialize Bootstrap tooltips
+document.querySelectorAll('[data-footnote-content]').forEach(element => {
+  new bootstrap.Tooltip(element, {
+    title: element.getAttribute('data-footnote-content'),
+    html: true,
+    placement: 'top'
+  })
+})
+```
+
+**With Custom CSS Tooltips:**
+
+```css
+/* Pure CSS tooltip */
+.footnote-ref {
+  position: relative;
+}
+
+.footnote-ref::after {
+  content: attr(data-footnote-content);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem;
+  background: #333;
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 1000;
+}
+
+.footnote-ref:hover::after {
+  opacity: 1;
+}
+```
+
+**Security Note:** The `data-footnote-content` attribute is properly HTML-escaped to prevent XSS attacks. When using `allowHTML: true` with tooltip libraries, the content is safe because special characters are already escaped.
+
 ## CSS Styling
 
 The rendered HTML includes Tailwind CSS classes. You can customize the appearance:
@@ -621,11 +714,11 @@ bundle exec rspec spec/lib/panda/editor/renderer_spec.rb
 
 ## Future Enhancements
 
-Potential improvements for future versions:
+See GitHub issue [#2](https://github.com/tastybamboo/panda-editor/issues/2) for planned improvements including:
 
 - [ ] Support for footnotes in other block types (headers, quotes, etc.)
 - [x] Rich text formatting within footnote content (implemented via markdown support)
-- [ ] Footnote tooltips on hover
+- [x] Footnote tooltips on hover (implemented with native browser tooltips and custom tooltip data attributes)
 - [ ] Customizable footnote markers (*, †, ‡, etc.)
 - [ ] Export footnotes to bibliography formats (BibTeX, etc.)
 - [ ] Footnote management UI in EditorJS

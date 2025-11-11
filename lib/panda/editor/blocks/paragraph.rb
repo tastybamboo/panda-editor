@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'cgi'
+
 module Panda
   module Editor
     module Blocks
@@ -30,8 +32,11 @@ module Panda
             footnote_number = register_footnote(footnote)
             next unless footnote_number
 
-            # Create footnote marker
-            marker = "<sup id=\"fnref:#{footnote_number}\"><a href=\"#fn:#{footnote_number}\" class=\"footnote\">#{footnote_number}</a></sup>"
+            # Get processed content for tooltip
+            tooltip_content = get_tooltip_content(footnote['id'])
+
+            # Create footnote marker with tooltip support
+            marker = create_footnote_marker(footnote_number, tooltip_content)
 
             # Insert marker at position
             text.insert(position, marker)
@@ -47,6 +52,32 @@ module Panda
             id: footnote['id'],
             content: footnote['content']
           )
+        end
+
+        def get_tooltip_content(footnote_id)
+          return nil unless options[:footnote_registry]
+
+          options[:footnote_registry].get_content(footnote_id)
+        end
+
+        def create_footnote_marker(number, tooltip_content)
+          # Strip HTML tags for title attribute (simple tooltip fallback)
+          plain_content = tooltip_content ? strip_html(tooltip_content) : nil
+
+          # Build marker with tooltip support
+          if tooltip_content
+            # Include both title attribute (native browser tooltip) and data attribute (for custom tooltips)
+            escaped_content = CGI.escapeHTML(tooltip_content)
+            escaped_title = CGI.escapeHTML(plain_content || '')
+            %(<sup id="fnref:#{number}" class="footnote-ref" data-footnote-content="#{escaped_content}" title="#{escaped_title}"><a href="#fn:#{number}" class="footnote">#{number}</a></sup>)
+          else
+            # Fallback without tooltip
+            %(<sup id="fnref:#{number}"><a href="#fn:#{number}" class="footnote">#{number}</a></sup>)
+          end
+        end
+
+        def strip_html(html)
+          html.gsub(/<\/?[^>]*>/, '')
         end
       end
     end

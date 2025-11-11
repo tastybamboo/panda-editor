@@ -650,10 +650,11 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       renderer = described_class.new(content_with_footnotes)
       output = renderer.render
 
-      # Check that footnote markers are in paragraphs
-      expect(output).to include('<sup id="fnref:1">')
+      # Check that footnote markers are in paragraphs (with tooltip support)
+      expect(output).to include('<sup id="fnref:1"')
+      expect(output).to include('class="footnote-ref"')
       expect(output).to include('<a href="#fn:1" class="footnote">1</a>')
-      expect(output).to include('<sup id="fnref:2">')
+      expect(output).to include('<sup id="fnref:2"')
       expect(output).to include('<a href="#fn:2" class="footnote">2</a>')
 
       # Check that sources section exists
@@ -725,8 +726,10 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       expect(output.scan('fnref:1').length).to eq(3) # 2 markers + 1 in backref
       expect(output.scan('fn:1').length).to eq(3) # 2 hrefs + 1 in li id
 
-      # Only one entry in sources
-      expect(output.scan('Important study').length).to eq(1)
+      # Only one entry in sources section (appears in tooltips too, so check sources specifically)
+      sources_section = output.match(/<ol class="footnotes.*?<\/ol>/m)[0]
+      expect(sources_section.scan('<li id="fn:').length).to eq(1)
+      expect(sources_section).to include('Important study')
     end
 
     describe 'autolink_urls option' do

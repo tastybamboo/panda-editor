@@ -67,6 +67,11 @@ module Panda
         @footnotes.any?
       end
 
+      def get_content(id)
+        footnote = @footnotes.find { |fn| fn[:id] == id }
+        footnote ? process_content(footnote[:content]) : nil
+      end
+
       private
 
       def process_content(content)
