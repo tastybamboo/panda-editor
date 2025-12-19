@@ -36,7 +36,10 @@ module Panda
       end
 
       def generate_cached_content
-        renderer_options = { autolink_urls: true }
+        renderer_options = {
+          autolink_urls: true,
+          custom_renderers: Panda::Editor.config.custom_renderers
+        }
 
         if content.is_a?(String)
           begin

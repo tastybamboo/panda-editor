@@ -269,6 +269,13 @@ export class EditorJSInitializer {
         }
       }
 
+      // Allow applications to customize the config through the iframe's window
+      // (e.g., neurobetter sets window.PANDA_CMS_EDITOR_JS_CONFIG in its application.js)
+      if (win.PANDA_CMS_EDITOR_JS_CONFIG) {
+        console.debug("[Panda CMS] Found custom EditorJS config:", Object.keys(win.PANDA_CMS_EDITOR_JS_CONFIG))
+        Object.assign(config.tools, win.PANDA_CMS_EDITOR_JS_CONFIG)
+      }
+
       // Remove any undefined tools from the config
       config.tools = Object.fromEntries(
         Object.entries(config.tools)

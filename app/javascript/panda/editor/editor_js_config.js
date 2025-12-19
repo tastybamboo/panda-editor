@@ -319,14 +319,16 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
       })
   )
 
-  // Allow applications to customize the config through Ruby
-  if (window.PANDA_CMS_EDITOR_JS_CONFIG) {
-    Object.assign(config.tools, window.PANDA_CMS_EDITOR_JS_CONFIG)
+  // Allow applications to customize the config through the iframe's window
+  // (e.g., neurobetter sets window.PANDA_CMS_EDITOR_JS_CONFIG in its application.js)
+  if (win.PANDA_CMS_EDITOR_JS_CONFIG) {
+    console.debug("[Panda CMS] Found custom EditorJS config:", Object.keys(win.PANDA_CMS_EDITOR_JS_CONFIG))
+    Object.assign(config.tools, win.PANDA_CMS_EDITOR_JS_CONFIG)
   }
 
   // Allow applications to customize the config through JavaScript
-  if (typeof window.customizeEditorJS === 'function') {
-    window.customizeEditorJS(config)
+  if (typeof win.customizeEditorJS === 'function') {
+    win.customizeEditorJS(config)
   }
 
   return config
