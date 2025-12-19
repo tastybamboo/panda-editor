@@ -8,6 +8,8 @@ module Panda
   module Editor
     extend Dry::Configurable
 
+    mattr_accessor :importmap
+
     # EditorJS configuration
     setting :editor_js_tools, default: []
     setting :editor_js_tool_config, default: {}

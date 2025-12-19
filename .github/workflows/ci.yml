@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [3.3.7, 3.4.5]
+        ruby: [3.3.10, 3.4.7]
         rails: [7.1, 7.2, 8.0]
     env:
       BUNDLE_PATH: vendor/bundle
@@ -74,7 +74,7 @@ jobs:
     name: Linters
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/tastybamboo/panda-ci:ruby-3.4.5
+      image: ghcr.io/tastybamboo/panda-ci:latest
     env:
       BUNDLE_PATH: vendor/bundle
     steps:

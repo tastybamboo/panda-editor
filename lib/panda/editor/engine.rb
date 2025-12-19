@@ -26,9 +26,25 @@ module Panda
         app.config.assets.precompile += %w[panda/editor/*.js panda/editor/*.css]
       end
 
+      # Create a separate importmap for panda-editor
+      # This keeps the engine's JavaScript separate from the app's importmap
+      # Admin uses panda_core_javascript helper which reads from ModuleRegistry
       initializer 'panda_editor.importmap', before: 'importmap' do |app|
-        app.config.importmap.paths << root.join('config/importmap.rb') if app.config.respond_to?(:importmap)
+        Panda::Editor.importmap = Importmap::Map.new.tap do |map|
+          map.draw(Panda::Editor::Engine.root.join('config/importmap.rb'))
+        end
       end
     end
   end
 end
+
+# Register with ModuleRegistry so admin can access the importmap
+Panda::Core::ModuleRegistry.register(
+  gem_name: 'panda-editor',
+  engine: 'Panda::Editor::Engine',
+  paths: {
+    views: 'app/views/panda/editor/**/*.erb',
+    components: 'app/components/panda/editor/**/*.rb',
+    javascripts: 'app/javascript/panda/editor/**/*.js'
+  }
+)
