@@ -1,11 +1,11 @@
 // Panda Editor Application JavaScript
 // This file serves as the entry point for all EditorJS functionality
 
-import { EditorJSInitializer } from "./editor_js_initializer"
-import { EditorJSConfig } from "./editor_js_config"
-import { RichTextEditor } from "./rich_text_editor"
-import FootnoteTool from "./tools/footnote_tool"
-import ParagraphWithFootnotes from "./tools/paragraph_with_footnotes"
+import { EditorJSInitializer } from "./editor_js_initializer.js"
+import { EditorJSConfig } from "./editor_js_config.js"
+import { RichTextEditor } from "./rich_text_editor.js"
+import FootnoteTool from "./tools/footnote_tool.js"
+import ParagraphWithFootnotes from "./tools/paragraph_with_footnotes.js"
 
 // Export for global access
 window.PandaEditor = {

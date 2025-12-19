@@ -1,6 +1,6 @@
-import { ResourceLoader } from "panda/cms/editor/resource_loader"
-import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig } from "panda/cms/editor/editor_js_config"
-import { CSSExtractor } from "panda/cms/editor/css_extractor"
+import { ResourceLoader } from "./resource_loader.js"
+import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig } from "./editor_js_config.js"
+import { CSSExtractor } from "./css_extractor.js"
 
 export class EditorJSInitializer {
   constructor(document, withinIFrame = false) {

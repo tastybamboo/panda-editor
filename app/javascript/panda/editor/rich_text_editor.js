@@ -5,8 +5,8 @@ import List from "@editorjs/list"
 import Quote from "@editorjs/quote"
 import Table from "@editorjs/table"
 import NestedList from "@editorjs/nested-list"
-import FootnoteTool from "./tools/footnote_tool"
-import ParagraphWithFootnotes from "./tools/paragraph_with_footnotes"
+import FootnoteTool from "./tools/footnote_tool.js"
+import ParagraphWithFootnotes from "./tools/paragraph_with_footnotes.js"
 
 export default class RichTextEditor {
   constructor(element, iframe) {
