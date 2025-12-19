@@ -19,6 +19,7 @@ pin "panda/editor/rich_text_editor", to: "/panda/editor/rich_text_editor.js"
 pin '@editorjs/editorjs', to: 'https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/+esm'
 pin '@editorjs/paragraph', to: 'https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.3/+esm'
 pin '@editorjs/header', to: 'https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1/+esm'
+pin '@editorjs/list', to: 'https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/+esm'
 pin '@editorjs/nested-list', to: 'https://cdn.jsdelivr.net/npm/@editorjs/nested-list@1.4.2/+esm'
 pin '@editorjs/quote', to: 'https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/+esm'
 pin '@editorjs/simple-image', to: 'https://cdn.jsdelivr.net/npm/@editorjs/simple-image@1.6.0/+esm'
