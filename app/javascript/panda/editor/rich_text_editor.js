@@ -1,7 +1,6 @@
 import EditorJS from "@editorjs/editorjs"
 import Paragraph from "@editorjs/paragraph"
 import Header from "@editorjs/header"
-import List from "@editorjs/list"
 import Quote from "@editorjs/quote"
 import Table from "@editorjs/table"
 import NestedList from "@editorjs/nested-list"
