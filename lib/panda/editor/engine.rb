@@ -3,6 +3,10 @@
 require 'rails'
 require 'sanitize'
 
+# Ensure panda-core is loaded first (provides ModuleRegistry)
+require 'panda/core'
+require 'panda/core/engine' if defined?(Rails)
+
 module Panda
   module Editor
     class Engine < ::Rails::Engine
