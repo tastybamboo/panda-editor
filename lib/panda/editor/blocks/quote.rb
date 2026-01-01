@@ -5,15 +5,15 @@ module Panda
     module Blocks
       class Quote < Base
         def render
-          text = data['text']
-          caption = data['caption']
-          alignment = data['alignment'] || 'left'
+          text = data["text"]
+          caption = data["caption"]
+          alignment = data["alignment"] || "left"
 
           # Build the HTML structure
           html = "<figure class=\"text-#{alignment}\">" \
             "<blockquote>#{wrap_text_in_p(text)}</blockquote>" \
             "#{caption_element(caption)}" \
-            '</figure>'
+            "</figure>"
 
           # Return raw HTML - validation will be handled by the main renderer if enabled
           html_safe(html)
@@ -24,7 +24,7 @@ module Panda
         def wrap_text_in_p(text)
           # Only wrap in <p> if it's not already wrapped
           text = sanitize(text)
-          if text.start_with?('<p>') && text.end_with?('</p>')
+          if text.start_with?("<p>") && text.end_with?("</p>")
             text
           else
             "<p>#{text}</p>"
@@ -32,7 +32,7 @@ module Panda
         end
 
         def caption_element(caption)
-          return '' if caption.blank?
+          return "" if caption.blank?
 
           "<figcaption>#{sanitize(caption)}</figcaption>"
         end

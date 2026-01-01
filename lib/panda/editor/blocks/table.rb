@@ -5,8 +5,8 @@ module Panda
     module Blocks
       class Table < Base
         def render
-          content = data['content']
-          with_headings = data['withHeadings']
+          content = data["content"]
+          with_headings = data["withHeadings"]
 
           html_safe(<<~HTML)
             <div class="overflow-x-auto">
@@ -25,10 +25,10 @@ module Panda
 
           while index < content.length
             rows << if index.zero? && with_headings
-                      render_header_row(content[index])
-                    else
-                      render_data_row(content[index])
-                    end
+              render_header_row(content[index])
+            else
+              render_data_row(content[index])
+            end
             index += 1
           end
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'dry-configurable'
-require_relative 'editor/version'
-require_relative 'editor/engine'
+require "dry-configurable"
+require_relative "editor/version"
+require_relative "editor/engine"
 
 module Panda
   module Editor
@@ -20,21 +20,21 @@ module Panda
     class Error < StandardError; end
 
     # Require components
-    require_relative 'editor/renderer'
-    require_relative 'editor/content'
-    require_relative 'editor/footnote_registry'
-    require_relative 'editor/markdown_to_editor_js_converter'
-    require_relative 'editor/html_to_editor_js_converter'
+    require_relative "editor/renderer"
+    require_relative "editor/content"
+    require_relative "editor/footnote_registry"
+    require_relative "editor/markdown_to_editor_js_converter"
+    require_relative "editor/html_to_editor_js_converter"
 
     module Blocks
-      autoload :Base, 'panda/editor/blocks/base'
-      autoload :Alert, 'panda/editor/blocks/alert'
-      autoload :Header, 'panda/editor/blocks/header'
-      autoload :Image, 'panda/editor/blocks/image'
-      autoload :List, 'panda/editor/blocks/list'
-      autoload :Paragraph, 'panda/editor/blocks/paragraph'
-      autoload :Quote, 'panda/editor/blocks/quote'
-      autoload :Table, 'panda/editor/blocks/table'
+      autoload :Base, "panda/editor/blocks/base"
+      autoload :Alert, "panda/editor/blocks/alert"
+      autoload :Header, "panda/editor/blocks/header"
+      autoload :Image, "panda/editor/blocks/image"
+      autoload :List, "panda/editor/blocks/list"
+      autoload :Paragraph, "panda/editor/blocks/paragraph"
+      autoload :Quote, "panda/editor/blocks/quote"
+      autoload :Table, "panda/editor/blocks/table"
     end
   end
 end

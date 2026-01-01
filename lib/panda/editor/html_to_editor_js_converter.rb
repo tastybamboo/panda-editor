@@ -95,7 +95,7 @@ module Panda
       end
 
       def list_block(node)
-        style = node.name == "ol" ? "ordered" : "unordered"
+        style = (node.name == "ol") ? "ordered" : "unordered"
         items = node.css("li").map { |li| li.inner_html.strip }
 
         {

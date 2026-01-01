@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require 'cgi'
+require "cgi"
 
 module Panda
   module Editor
     module Blocks
       class Paragraph < Base
         def render
-          content = sanitize(data['text'])
-          return '' if content.blank?
+          content = sanitize(data["text"])
+          return "" if content.blank?
 
-          content = inject_footnotes(content) if data['footnotes'].present?
+          content = inject_footnotes(content) if data["footnotes"].present?
 
           html_safe("<p>#{content}</p>")
         end
@@ -18,13 +18,13 @@ module Panda
         private
 
         def inject_footnotes(text)
-          return text unless data['footnotes'].is_a?(Array)
+          return text unless data["footnotes"].is_a?(Array)
 
           # Sort footnotes by position in descending order to avoid position shifts
-          footnotes = data['footnotes'].sort_by { |fn| -fn['position'].to_i }
+          footnotes = data["footnotes"].sort_by { |fn| -fn["position"].to_i }
 
           footnotes.each do |footnote|
-            position = footnote['position'].to_i
+            position = footnote["position"].to_i
             # Skip if position is beyond text length
             next if position.negative? || position > text.length
 
@@ -33,7 +33,7 @@ module Panda
             next unless footnote_number
 
             # Get processed content for tooltip
-            tooltip_content = get_tooltip_content(footnote['id'])
+            tooltip_content = get_tooltip_content(footnote["id"])
 
             # Create footnote marker with tooltip support
             marker = create_footnote_marker(footnote_number, tooltip_content)
@@ -49,8 +49,8 @@ module Panda
           return nil unless options[:footnote_registry]
 
           options[:footnote_registry].add(
-            id: footnote['id'],
-            content: footnote['content']
+            id: footnote["id"],
+            content: footnote["content"]
           )
         end
 
@@ -68,7 +68,7 @@ module Panda
           if tooltip_content
             # Include both title attribute (native browser tooltip) and data attribute (for custom tooltips)
             escaped_content = CGI.escapeHTML(tooltip_content)
-            escaped_title = CGI.escapeHTML(plain_content || '')
+            escaped_title = CGI.escapeHTML(plain_content || "")
             %(<sup id="fnref:#{number}" class="footnote-ref" data-footnote-content="#{escaped_content}" title="#{escaped_title}"><a href="#fn:#{number}" class="footnote">#{number}</a></sup>)
           else
             # Fallback without tooltip
@@ -77,7 +77,7 @@ module Panda
         end
 
         def strip_html(html)
-          html.gsub(/<\/?[^>]*>/, '')
+          html.gsub(/<\/?[^>]*>/, "")
         end
       end
     end
