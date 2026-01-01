@@ -6,7 +6,7 @@ pre-commit:
   jobs:
     - name: standardrb
       run: bundle exec standardrb
-      glob: '*.rb'
+      glob: "*.rb"
       stage_fixed: true
 
 pre-push:
