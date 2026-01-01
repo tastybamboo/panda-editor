@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
-  describe '.convert' do
-    it 'converts Markdown to EditorJS format' do
-      markdown = '# Test'
+  describe ".convert" do
+    it "converts Markdown to EditorJS format" do
+      markdown = "# Test"
       result = described_class.convert(markdown)
 
       expect(result).to be_a(Hash)
@@ -13,17 +13,17 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       expect(result[:version]).to eq("2.28.0")
     end
 
-    it 'handles empty markdown' do
-      result = described_class.convert('')
+    it "handles empty markdown" do
+      result = described_class.convert("")
 
       expect(result[:blocks]).to be_empty
     end
   end
 
-  describe '#convert' do
+  describe "#convert" do
     subject { described_class.new(markdown).convert }
 
-    context 'with headers' do
+    context "with headers" do
       let(:markdown) do
         <<~MD
           # Heading 1
@@ -35,20 +35,20 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts headers to EditorJS header blocks' do
+      it "converts headers to EditorJS header blocks" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(6)
         (1..6).each do |level|
           expect(blocks[level - 1]).to include(
-            type: 'header',
+            type: "header",
             data: include(level: level)
           )
         end
       end
     end
 
-    context 'with paragraphs' do
+    context "with paragraphs" do
       let(:markdown) do
         <<~MD
           First paragraph
@@ -57,63 +57,63 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts paragraphs to EditorJS paragraph blocks' do
+      it "converts paragraphs to EditorJS paragraph blocks" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(2)
         expect(blocks[0]).to include(
-          type: 'paragraph',
+          type: "paragraph",
           data: include(text: /First paragraph/)
         )
         expect(blocks[1]).to include(
-          type: 'paragraph',
+          type: "paragraph",
           data: include(text: /Second paragraph/)
         )
       end
     end
 
-    context 'with inline formatting' do
-      let(:markdown) { 'Text with **bold** and *italic* and ~~strikethrough~~' }
+    context "with inline formatting" do
+      let(:markdown) { "Text with **bold** and *italic* and ~~strikethrough~~" }
 
-      it 'converts to HTML tags in EditorJS' do
+      it "converts to HTML tags in EditorJS" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include('<strong>bold</strong>')
-        expect(blocks[0][:data][:text]).to include('<em>italic</em>')
-        expect(blocks[0][:data][:text]).to include('<del>strikethrough</del>')
+        expect(blocks[0][:data][:text]).to include("<strong>bold</strong>")
+        expect(blocks[0][:data][:text]).to include("<em>italic</em>")
+        expect(blocks[0][:data][:text]).to include("<del>strikethrough</del>")
       end
     end
 
-    context 'with links' do
-      let(:markdown) { 'Check out [this link](https://example.com)' }
+    context "with links" do
+      let(:markdown) { "Check out [this link](https://example.com)" }
 
-      it 'converts to HTML anchor tags' do
+      it "converts to HTML anchor tags" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include('<a')
+        expect(blocks[0][:data][:text]).to include("<a")
         expect(blocks[0][:data][:text]).to include('href="https://example.com"')
-        expect(blocks[0][:data][:text]).to include('this link')
+        expect(blocks[0][:data][:text]).to include("this link")
       end
 
-      it 'adds security attributes to links' do
+      it "adds security attributes to links" do
         blocks = subject[:blocks]
 
         expect(blocks[0][:data][:text]).to include('rel="noopener noreferrer"')
       end
     end
 
-    context 'with autolinks' do
-      let(:markdown) { 'Visit https://example.com for more info' }
+    context "with autolinks" do
+      let(:markdown) { "Visit https://example.com for more info" }
 
-      it 'automatically converts URLs to links' do
+      it "automatically converts URLs to links" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include('<a')
+        expect(blocks[0][:data][:text]).to include("<a")
         expect(blocks[0][:data][:text]).to include('href="https://example.com"')
       end
     end
 
-    context 'with unordered lists' do
+    context "with unordered lists" do
       let(:markdown) do
         <<~MD
           - Item 1
@@ -122,21 +122,21 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts to EditorJS list block' do
+      it "converts to EditorJS list block" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(1)
         expect(blocks[0]).to include(
-          type: 'list',
+          type: "list",
           data: include(
-            style: 'unordered',
-            items: ['Item 1', 'Item 2', 'Item 3']
+            style: "unordered",
+            items: ["Item 1", "Item 2", "Item 3"]
           )
         )
       end
     end
 
-    context 'with ordered lists' do
+    context "with ordered lists" do
       let(:markdown) do
         <<~MD
           1. First item
@@ -145,29 +145,29 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts to EditorJS ordered list block' do
+      it "converts to EditorJS ordered list block" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(1)
         expect(blocks[0]).to include(
-          type: 'list',
+          type: "list",
           data: include(
-            style: 'ordered',
-            items: ['First item', 'Second item', 'Third item']
+            style: "ordered",
+            items: ["First item", "Second item", "Third item"]
           )
         )
       end
     end
 
-    context 'with blockquotes' do
-      let(:markdown) { '> This is a quote' }
+    context "with blockquotes" do
+      let(:markdown) { "> This is a quote" }
 
-      it 'converts to EditorJS quote block' do
+      it "converts to EditorJS quote block" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(1)
         expect(blocks[0]).to include(
-          type: 'quote',
+          type: "quote",
           data: include(
             text: /This is a quote/
           )
@@ -175,7 +175,7 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       end
     end
 
-    context 'with fenced code blocks' do
+    context "with fenced code blocks" do
       let(:markdown) do
         <<~MD
           ```javascript
@@ -185,12 +185,12 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts to EditorJS code block' do
+      it "converts to EditorJS code block" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(1)
         expect(blocks[0]).to include(
-          type: 'code',
+          type: "code",
           data: include(
             code: /const x = 42/
           )
@@ -198,7 +198,7 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       end
     end
 
-    context 'with indented code blocks' do
+    context "with indented code blocks" do
       let(:markdown) do
         <<~MD
           Regular text
@@ -208,14 +208,14 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts to EditorJS code block' do
+      it "converts to EditorJS code block" do
         blocks = subject[:blocks]
 
-        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == 'code' } }
+        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == "code" } }
       end
     end
 
-    context 'with tables' do
+    context "with tables" do
       let(:markdown) do
         <<~MD
           | Header 1 | Header 2 |
@@ -225,12 +225,12 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts to EditorJS table block' do
+      it "converts to EditorJS table block" do
         blocks = subject[:blocks]
 
         expect(blocks.length).to eq(1)
         expect(blocks[0]).to include(
-          type: 'table',
+          type: "table",
           data: include(
             withHeadings: true,
             content: be_an(Array)
@@ -239,7 +239,7 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       end
     end
 
-    context 'with horizontal rules' do
+    context "with horizontal rules" do
       let(:markdown) do
         <<~MD
           Before
@@ -250,26 +250,26 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts to EditorJS delimiter block' do
+      it "converts to EditorJS delimiter block" do
         blocks = subject[:blocks]
 
         expect(blocks).to satisfy { |b|
-          b.any? { |block| block[:type] == 'delimiter' }
+          b.any? { |block| block[:type] == "delimiter" }
         }
       end
     end
 
-    context 'with superscript' do
-      let(:markdown) { 'E = mc^2' }
+    context "with superscript" do
+      let(:markdown) { "E = mc^2" }
 
-      it 'converts to superscript HTML' do
+      it "converts to superscript HTML" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include('<sup>2</sup>')
+        expect(blocks[0][:data][:text]).to include("<sup>2</sup>")
       end
     end
 
-    context 'with footnotes' do
+    context "with footnotes" do
       let(:markdown) do
         <<~MD
           Text with a footnote[^1].
@@ -278,14 +278,14 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'processes footnotes' do
+      it "processes footnotes" do
         # Redcarpet processes footnotes to HTML
         expect { subject }.not_to raise_error
         expect(subject[:blocks]).to be_an(Array)
       end
     end
 
-    context 'with mixed content' do
+    context "with mixed content" do
       let(:markdown) do
         <<~MD
           # Article Title
@@ -312,73 +312,73 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         MD
       end
 
-      it 'converts all markdown elements correctly' do
+      it "converts all markdown elements correctly" do
         blocks = subject[:blocks]
 
-        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == 'header' } }
-        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == 'paragraph' } }
-        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == 'list' } }
-        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == 'quote' } }
-        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == 'code' } }
+        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == "header" } }
+        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == "paragraph" } }
+        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == "list" } }
+        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == "quote" } }
+        expect(blocks).to satisfy { |b| b.any? { |block| block[:type] == "code" } }
       end
     end
 
-    context 'with edge cases' do
-      context 'empty string' do
-        let(:markdown) { '' }
+    context "with edge cases" do
+      context "empty string" do
+        let(:markdown) { "" }
 
-        it 'returns empty blocks' do
+        it "returns empty blocks" do
           expect(subject[:blocks]).to be_empty
         end
       end
 
-      context 'only whitespace' do
+      context "only whitespace" do
         let(:markdown) { "  \n\n  \n  " }
 
-        it 'returns empty blocks' do
+        it "returns empty blocks" do
           expect(subject[:blocks]).to be_empty
         end
       end
 
-      context 'special characters' do
+      context "special characters" do
         let(:markdown) { 'Text with & < > " characters' }
 
-        it 'escapes HTML entities' do
+        it "escapes HTML entities" do
           blocks = subject[:blocks]
 
           # Markdown processors escape these
-          expect(blocks[0][:data][:text]).not_to include('<')
-          expect(blocks[0][:data][:text]).not_to include('>')
+          expect(blocks[0][:data][:text]).not_to include("<")
+          expect(blocks[0][:data][:text]).not_to include(">")
         end
       end
 
-      context 'hard line breaks' do
+      context "hard line breaks" do
         let(:markdown) do
           "Line one  \nLine two"
         end
 
-        it 'preserves hard line breaks' do
+        it "preserves hard line breaks" do
           blocks = subject[:blocks]
 
-          expect(blocks[0][:data][:text]).to include('<br')
+          expect(blocks[0][:data][:text]).to include("<br")
         end
       end
 
-      context 'with no_intra_emphasis' do
-        let(:markdown) { 'some_variable_name' }
+      context "with no_intra_emphasis" do
+        let(:markdown) { "some_variable_name" }
 
-        it 'does not treat underscores in words as emphasis' do
+        it "does not treat underscores in words as emphasis" do
           blocks = subject[:blocks]
 
-          expect(blocks[0][:data][:text]).to eq('some_variable_name')
+          expect(blocks[0][:data][:text]).to eq("some_variable_name")
         end
       end
     end
 
-    context 'integration with HtmlToEditorJsConverter' do
-      let(:markdown) { '# Test Header' }
+    context "integration with HtmlToEditorJsConverter" do
+      let(:markdown) { "# Test Header" }
 
-      it 'uses HtmlToEditorJsConverter internally' do
+      it "uses HtmlToEditorJsConverter internally" do
         # Verify the conversion pipeline works end-to-end
         expect(Panda::Editor::HtmlToEditorJsConverter).to receive(:convert).and_call_original
 
@@ -387,17 +387,17 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
     end
   end
 
-  describe 'error handling' do
-    context 'with nil input' do
-      it 'raises TypeError for nil input' do
+  describe "error handling" do
+    context "with nil input" do
+      it "raises TypeError for nil input" do
         expect { described_class.new(nil).convert }.to raise_error(TypeError)
       end
     end
 
-    context 'with invalid markdown' do
+    context "with invalid markdown" do
       let(:markdown) { '<script>alert("xss")</script>' }
 
-      it 'handles potentially malicious content' do
+      it "handles potentially malicious content" do
         expect { described_class.new(markdown).convert }.not_to raise_error
       end
     end

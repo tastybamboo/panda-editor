@@ -1,0 +1,16 @@
+---
+assert_lefthook_installed: true
+colors: true
+pre-commit:
+  parallel: true
+  jobs:
+    - name: standardrb
+      run: bundle exec standardrb
+      glob: '*.rb'
+      stage_fixed: true
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: standardrb
+      run: bundle exec standardrb

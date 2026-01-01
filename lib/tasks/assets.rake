@@ -2,14 +2,14 @@
 
 namespace :panda_editor do
   namespace :assets do
-    desc 'Compile Panda Editor assets for production'
+    desc "Compile Panda Editor assets for production"
     task compile: :environment do
-      require 'fileutils'
+      require "fileutils"
 
-      puts 'Compiling Panda Editor assets...'
+      puts "Compiling Panda Editor assets..."
 
       # Create temporary directory for assets
-      tmp_dir = Rails.root.join('tmp', 'panda_editor_assets')
+      tmp_dir = Rails.root.join("tmp", "panda_editor_assets")
       FileUtils.mkdir_p(tmp_dir)
 
       # Get version from gem
@@ -22,51 +22,51 @@ namespace :panda_editor do
       compile_css(tmp_dir, version)
 
       # Copy to public directory
-      public_dir = Rails.root.join('public', 'panda-editor-assets')
+      public_dir = Rails.root.join("public", "panda-editor-assets")
       FileUtils.mkdir_p(public_dir)
-      FileUtils.cp_r(Dir.glob(tmp_dir.join('*')), public_dir)
+      FileUtils.cp_r(Dir.glob(tmp_dir.join("*")), public_dir)
 
-      puts '✅ Assets compiled successfully'
+      puts "✅ Assets compiled successfully"
     end
 
-    desc 'Download Panda Editor assets from GitHub'
+    desc "Download Panda Editor assets from GitHub"
     task download: :environment do
-      require 'panda/editor/asset_loader'
+      require "panda/editor/asset_loader"
 
-      puts 'Downloading Panda Editor assets from GitHub...'
+      puts "Downloading Panda Editor assets from GitHub..."
       Panda::Editor::AssetLoader.send(:download_assets_from_github)
-      puts '✅ Assets downloaded successfully'
+      puts "✅ Assets downloaded successfully"
     end
 
-    desc 'Upload compiled assets to GitHub release'
+    desc "Upload compiled assets to GitHub release"
     task upload: :environment do
-      require 'net/http'
-      require 'json'
+      require "net/http"
+      require "json"
 
-      puts 'Uploading Panda Editor assets to GitHub release...'
+      puts "Uploading Panda Editor assets to GitHub release..."
 
       # This task would be run in CI to upload compiled assets
       # to the GitHub release when a new version is tagged
 
-      version = ENV['GITHUB_REF_NAME'] || "v#{Panda::Editor::VERSION}"
-      token = ENV['GITHUB_TOKEN']
+      version = ENV["GITHUB_REF_NAME"] || "v#{Panda::Editor::VERSION}"
+      token = ENV["GITHUB_TOKEN"]
 
       unless token
-        puts '❌ GITHUB_TOKEN environment variable required'
+        puts "❌ GITHUB_TOKEN environment variable required"
         exit 1
       end
 
       # Find compiled assets
-      assets_dir = Rails.root.join('public', 'panda-editor-assets')
-      js_file = Dir.glob(assets_dir.join('panda-editor-*.js')).first
-      css_file = Dir.glob(assets_dir.join('panda-editor-*.css')).first
+      assets_dir = Rails.root.join("public", "panda-editor-assets")
+      js_file = Dir.glob(assets_dir.join("panda-editor-*.js")).first
+      css_file = Dir.glob(assets_dir.join("panda-editor-*.css")).first
 
       if js_file && css_file
         upload_to_release(js_file, version, token)
         upload_to_release(css_file, version, token)
-        puts '✅ Assets uploaded successfully'
+        puts "✅ Assets uploaded successfully"
       else
-        puts '❌ Compiled assets not found'
+        puts "❌ Compiled assets not found"
         exit 1
       end
     end
@@ -74,9 +74,9 @@ namespace :panda_editor do
     private
 
     def compile_javascript(tmp_dir, version)
-      puts '  Compiling JavaScript...'
+      puts "  Compiling JavaScript..."
 
-      js_files = Dir.glob(Panda::Editor::Engine.root.join('app/javascript/panda/editor/**/*.js'))
+      js_files = Dir.glob(Panda::Editor::Engine.root.join("app/javascript/panda/editor/**/*.js"))
 
       output = js_files.map { |file| File.read(file) }.join("\n\n")
 
@@ -88,9 +88,9 @@ namespace :panda_editor do
     end
 
     def compile_css(tmp_dir, version)
-      puts '  Compiling CSS...'
+      puts "  Compiling CSS..."
 
-      css_files = Dir.glob(Panda::Editor::Engine.root.join('app/assets/stylesheets/panda/editor/**/*.css'))
+      css_files = Dir.glob(Panda::Editor::Engine.root.join("app/assets/stylesheets/panda/editor/**/*.css"))
 
       output = css_files.map { |file| File.read(file) }.join("\n\n")
 

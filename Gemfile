@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
 # Specify your gem's dependencies in panda-editor.gemspec
 gemspec
 
-gem 'rake', '~> 13.0'
+gem "rake", "~> 13.0"
 
 group :development, :test do
-  gem 'brakeman', '~> 6.0'
-  gem 'bundle-audit', '~> 0.1'
-  gem 'erb_lint', '~> 0.5'
-  gem 'rspec', '~> 3.0'
-  gem 'rspec-rails', '~> 6.0'
+  gem "brakeman", "~> 6.0"
+  gem "bundle-audit", "~> 0.1"
+  gem "erb_lint", "~> 0.5"
+  gem "rspec", "~> 3.0"
+  gem "rspec-rails", "~> 6.0"
 end
