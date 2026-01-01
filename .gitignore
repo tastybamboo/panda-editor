@@ -21,7 +21,6 @@
 /spec/dummy/tmp/capybara/
 
 # Ruby version files
-.ruby-version
 .ruby-gemset
 
 # IDE files
