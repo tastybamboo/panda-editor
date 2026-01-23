@@ -68,6 +68,11 @@ export const EDITOR_JS_CSS = `
   .ce-header h6 { font-size: 0.67em; }
 
   .codex-editor__redactor {
+    padding-bottom: 50px !important;
+    min-height: 50px !important;
+  }
+  /* Add more padding for empty or short editors to provide clickable space */
+  .codex-editor__redactor:has(.ce-block:only-child) {
     padding-bottom: 150px !important;
     min-height: 100px !important;
   }
