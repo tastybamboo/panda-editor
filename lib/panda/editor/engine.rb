@@ -48,7 +48,7 @@ Panda::Core::ModuleRegistry.register(
   engine: "Panda::Editor::Engine",
   paths: {
     views: "app/views/panda/editor/**/*.erb",
-    components: "app/components/panda/editor/**/*.rb",
+    components: "app/components/panda/editor/**/*.{rb,erb,js}",
     javascripts: "app/javascript/panda/editor/**/*.js"
   }
 )
