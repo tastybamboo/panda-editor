@@ -17,6 +17,9 @@ if (window.PANDA_CMS_EDITOR_JS_RESOURCES) {
 export const EDITOR_JS_CSS = `
   .codex-editor {
     position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    overflow: hidden;
   }
   .codex-editor::before {
     content: '';
@@ -68,12 +71,12 @@ export const EDITOR_JS_CSS = `
   .ce-header h6 { font-size: 0.67em; }
 
   .codex-editor__redactor {
-    padding-bottom: 50px !important;
+    padding-bottom: 10px !important;
     min-height: 50px !important;
   }
   /* Add more padding for empty or short editors to provide clickable space */
   .codex-editor__redactor:has(.ce-block:only-child) {
-    padding-bottom: 150px !important;
+    padding-bottom: 50px !important;
     min-height: 100px !important;
   }
   /* Base toolbar styles */
@@ -179,7 +182,7 @@ export const EDITOR_JS_CSS = `
 
   /* Ensure last block has bottom spacing */
   .ce-block:last-child {
-    padding-bottom: 2em;
+    padding-bottom: 1em;
   }
 
   /* Reset all block type margins */
