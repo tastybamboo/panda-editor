@@ -1,7 +1,7 @@
 ---
 name: CI
 
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   pull_request:
     branches: [main]
   push:
@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [3.3.10, 3.4.8, 4.0.0]
-        rails: [7.1, 7.2, 8.0]
+        ruby: [3.3.10, 3.4.8, 4.0.1]
+        rails: [7.1, 7.2, 8.1]
     env:
       BUNDLE_PATH: vendor/bundle
       RAILS_ENV: test
