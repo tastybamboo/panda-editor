@@ -208,6 +208,9 @@ export class EditorJSInitializer {
 
       console.debug('[Panda CMS] Processed initial data:', processedData)
 
+      // Get CSRF token from the window context (set by iframe controller or meta tag)
+      const csrfToken = win.PANDA_CMS_CSRF_TOKEN || win.document?.querySelector('meta[name="csrf-token"]')?.content;
+
       // Create editor configuration
       const config = {
         holder: holder,
@@ -250,7 +253,10 @@ export class EditorJSInitializer {
           linkTool: {
             class: win.LinkTool,
             config: {
-              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata
+              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata,
+              headers: {
+                'X-CSRF-Token': csrfToken
+              }
             }
           },
           attaches: {
@@ -258,7 +264,10 @@ export class EditorJSInitializer {
             config: {
               endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
               field: 'file',
-              buttonText: 'Select file to upload'
+              buttonText: 'Select file to upload',
+              additionalRequestHeaders: {
+                'X-CSRF-Token': csrfToken
+              }
             }
           },
           footnote: {
