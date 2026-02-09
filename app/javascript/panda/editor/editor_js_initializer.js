@@ -57,6 +57,9 @@ export class EditorJSInitializer {
       // Load CSS directly
       await ResourceLoader.embedCSS(this.document, this.document.head, EDITOR_JS_CSS)
 
+      // Optional tools that should not block editor initialization if they fail to load
+      const OPTIONAL_TOOLS = ['editorjs-undo', 'link-autocomplete']
+
       // Then load all tools sequentially to ensure proper initialization order
       for (const resource of EDITOR_JS_RESOURCES.slice(1)) {
         try {
@@ -74,8 +77,13 @@ export class EditorJSInitializer {
 
           console.debug(`[Panda CMS] Successfully loaded tool: ${toolName}`)
         } catch (error) {
-          console.error(`[Panda CMS] Failed to load tool: ${resource}`, error)
-          throw error
+          const toolName = resource.split('/').pop().split('@')[0]
+          if (OPTIONAL_TOOLS.includes(toolName)) {
+            console.warn(`[Panda CMS] Optional tool failed to load (continuing): ${toolName}`, error)
+          } else {
+            console.error(`[Panda CMS] Failed to load tool: ${resource}`, error)
+            throw error
+          }
         }
       }
 
