@@ -6,7 +6,11 @@ export const EDITOR_JS_RESOURCES = [
   "https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0",
   "https://cdn.jsdelivr.net/npm/@editorjs/simple-image@1.6.0",
   "https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0",
-  "https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0"
+  "https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0",
+  "https://cdn.jsdelivr.net/npm/@editorjs/link@2.6.2",
+  "https://cdn.jsdelivr.net/npm/@editorjs/attaches@1.3.0",
+  "https://cdn.jsdelivr.net/npm/editorjs-undo@2.0.28",
+  "https://cdn.jsdelivr.net/npm/@editorjs/link-autocomplete@0.1.0"
 ]
 
 // Allow applications to add their own resources
@@ -309,8 +313,29 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
           }
         }
       },
+      linkTool: {
+        class: win.LinkTool,
+        config: {
+          endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata
+        }
+      },
+      attaches: {
+        class: win.AttachesTool,
+        config: {
+          endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
+          field: 'file',
+          buttonText: 'Select file to upload'
+        }
+      },
       footnote: {
         class: win.FootnoteTool
+      },
+      link: {
+        class: win.LinkAutocomplete,
+        config: {
+          endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.editorSearch,
+          queryParam: 'search'
+        }
       }
     }
   }
@@ -340,4 +365,16 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
   }
 
   return config
+}
+
+export function initializeEditorUndo(editor, win) {
+  const w = win || window
+  if (w.Undo) {
+    try {
+      new w.Undo({ editor })
+      console.debug('[Panda CMS] EditorJS Undo initialized')
+    } catch (e) {
+      console.warn('[Panda CMS] Failed to initialize undo:', e)
+    }
+  }
 }

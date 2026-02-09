@@ -29,8 +29,10 @@ module Panda
     module Blocks
       autoload :Base, "panda/editor/blocks/base"
       autoload :Alert, "panda/editor/blocks/alert"
+      autoload :Attaches, "panda/editor/blocks/attaches"
       autoload :Header, "panda/editor/blocks/header"
       autoload :Image, "panda/editor/blocks/image"
+      autoload :LinkTool, "panda/editor/blocks/link_tool"
       autoload :List, "panda/editor/blocks/list"
       autoload :Paragraph, "panda/editor/blocks/paragraph"
       autoload :Quote, "panda/editor/blocks/quote"
