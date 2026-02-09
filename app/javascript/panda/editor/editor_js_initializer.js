@@ -131,6 +131,7 @@ export class EditorJSInitializer {
       'link': 'LinkTool',
       'attaches': 'AttachesTool',
       'undo': 'Undo',
+      'editorjs-undo': 'Undo',
       'link-autocomplete': 'LinkAutocomplete'
     }
 
