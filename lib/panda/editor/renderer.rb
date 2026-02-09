@@ -117,8 +117,11 @@ module Panda
         end
       end
 
+      BLOCK_TYPE_CLASS_MAP = {"attaches" => "Attaches"}.freeze
+
       def default_renderer_for(block)
-        renderer_class = "Panda::Editor::Blocks::#{block["type"].classify}".constantize
+        class_name = BLOCK_TYPE_CLASS_MAP[block["type"]] || block["type"].classify
+        renderer_class = "Panda::Editor::Blocks::#{class_name}".constantize
         renderer_class.new(block["data"], options)
       rescue NameError
         Panda::Editor::Blocks::Base.new(block["data"], options)

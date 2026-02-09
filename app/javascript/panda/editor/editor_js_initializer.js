@@ -1,5 +1,5 @@
 import { ResourceLoader } from "./resource_loader.js"
-import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig } from "./editor_js_config.js"
+import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig, initializeEditorUndo } from "./editor_js_config.js"
 import { CSSExtractor } from "./css_extractor.js"
 
 export class EditorJSInitializer {
@@ -119,7 +119,11 @@ export class EditorJSInitializer {
       'quote': 'Quote',
       'simple-image': 'SimpleImage',
       'table': 'Table',
-      'embed': 'Embed'
+      'embed': 'Embed',
+      'link': 'LinkTool',
+      'attaches': 'AttachesTool',
+      'undo': 'Undo',
+      'link-autocomplete': 'LinkAutocomplete'
     }
 
     const globalToolName = toolMapping[cleanToolName] || cleanToolName
@@ -204,6 +208,9 @@ export class EditorJSInitializer {
 
       console.debug('[Panda CMS] Processed initial data:', processedData)
 
+      // Get CSRF token from the window context (set by iframe controller or meta tag)
+      const csrfToken = win.PANDA_CMS_CSRF_TOKEN || win.document?.querySelector('meta[name="csrf-token"]')?.content;
+
       // Create editor configuration
       const config = {
         holder: holder,
@@ -243,8 +250,35 @@ export class EditorJSInitializer {
               captionPlaceholder: 'Quote\'s author'
             }
           },
+          linkTool: {
+            class: win.LinkTool,
+            config: {
+              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata,
+              headers: {
+                'X-CSRF-Token': csrfToken
+              }
+            }
+          },
+          attaches: {
+            class: win.AttachesTool,
+            config: {
+              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
+              field: 'file',
+              buttonText: 'Select file to upload',
+              additionalRequestHeaders: {
+                'X-CSRF-Token': csrfToken
+              }
+            }
+          },
           footnote: {
             class: win.FootnoteTool
+          },
+          link: {
+            class: win.LinkAutocomplete,
+            config: {
+              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.editorSearch,
+              queryParam: 'search'
+            }
           }
         },
         onChange: (api, event) => {
@@ -300,6 +334,7 @@ export class EditorJSInitializer {
               clearTimeout(timeoutId)
               holder.editorInstance = editor
               element.dataset.editableInitialized = 'true'
+              initializeEditorUndo(editor, win)
               resolve(editor)
             },
             onChange: (api, event) => {
