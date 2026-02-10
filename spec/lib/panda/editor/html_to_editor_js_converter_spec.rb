@@ -341,5 +341,152 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
         expect(blocks[0][:type]).to eq("paragraph")
       end
     end
+
+    context "with footnotes" do
+      context "single footnote" do
+        let(:html) do
+          <<~HTML
+            <p>Text with a claim<sup id="fnref1"><a href="#fn1">1</a></sup>.</p>
+            <div class="footnotes"><hr><ol>
+              <li id="fn1"><p>Citation here.&nbsp;<a href="#fnref1">&#8617;</a></p></li>
+            </ol></div>
+          HTML
+        end
+
+        it "extracts footnote into paragraph data" do
+          blocks = subject[:blocks]
+
+          expect(blocks.length).to eq(1)
+          expect(blocks[0][:type]).to eq("paragraph")
+          expect(blocks[0][:data][:text]).to eq("Text with a claim.")
+          expect(blocks[0][:data][:footnotes]).to eq([
+            {id: "fn-1", content: "Citation here.", position: 17}
+          ])
+        end
+      end
+
+      context "multiple footnotes" do
+        let(:html) do
+          <<~HTML
+            <p>First claim<sup id="fnref1"><a href="#fn1">1</a></sup> and second<sup id="fnref2"><a href="#fn2">2</a></sup>.</p>
+            <div class="footnotes"><hr><ol>
+              <li id="fn1"><p>First citation.&nbsp;<a href="#fnref1">&#8617;</a></p></li>
+              <li id="fn2"><p>Second citation.&nbsp;<a href="#fnref2">&#8617;</a></p></li>
+            </ol></div>
+          HTML
+        end
+
+        it "extracts all footnotes with correct positions" do
+          blocks = subject[:blocks]
+
+          expect(blocks.length).to eq(1)
+          expect(blocks[0][:data][:text]).to eq("First claim and second.")
+          expect(blocks[0][:data][:footnotes].length).to eq(2)
+          expect(blocks[0][:data][:footnotes][0]).to include(id: "fn-1", content: "First citation.")
+          expect(blocks[0][:data][:footnotes][1]).to include(id: "fn-2", content: "Second citation.")
+          expect(blocks[0][:data][:footnotes][0][:position]).to be < blocks[0][:data][:footnotes][1][:position]
+        end
+      end
+
+      context "footnote with missing definition" do
+        let(:html) do
+          <<~HTML
+            <p>Text with ref<sup id="fnref99"><a href="#fn99">99</a></sup>.</p>
+            <div class="footnotes"><hr><ol></ol></div>
+          HTML
+        end
+
+        it "strips the sup but does not add footnote entry" do
+          blocks = subject[:blocks]
+
+          expect(blocks.length).to eq(1)
+          expect(blocks[0][:data][:text]).to eq("Text with ref.")
+          expect(blocks[0][:data]).not_to have_key(:footnotes)
+        end
+      end
+
+      context "HTML without footnotes" do
+        let(:html) { "<p>Normal paragraph</p>" }
+
+        it "does not add footnotes key" do
+          blocks = subject[:blocks]
+
+          expect(blocks[0][:data]).not_to have_key(:footnotes)
+        end
+      end
+
+      context "footnotes div is removed from output" do
+        let(:html) do
+          <<~HTML
+            <p>Text<sup id="fnref1"><a href="#fn1">1</a></sup></p>
+            <div class="footnotes"><hr><ol>
+              <li id="fn1"><p>Note.&nbsp;<a href="#fnref1">&#8617;</a></p></li>
+            </ol></div>
+          HTML
+        end
+
+        it "does not create a block from the footnotes div" do
+          blocks = subject[:blocks]
+
+          expect(blocks.length).to eq(1)
+          expect(blocks.none? { |b| b[:data][:text]&.include?("Note.") && b[:type] == "paragraph" && !b[:data].key?(:footnotes) }).to be true
+        end
+      end
+    end
+
+    context "with custom converters" do
+      let(:custom_converter) do
+        converter = Class.new do
+          def self.convert(node)
+            return nil unless node.element? && node.name == "blockquote"
+
+            text = node.text.strip
+            return nil unless text.start_with?("[CUSTOM]")
+
+            {
+              type: "custom_block",
+              data: {content: text.sub("[CUSTOM]", "").strip}
+            }
+          end
+        end
+        converter
+      end
+
+      context "when a custom converter matches" do
+        let(:html) { "<blockquote>[CUSTOM] Special content</blockquote>" }
+
+        it "uses the custom converter" do
+          result = described_class.convert(html, custom_converters: {"custom" => custom_converter})
+          blocks = result[:blocks]
+
+          expect(blocks.length).to eq(1)
+          expect(blocks[0][:type]).to eq("custom_block")
+          expect(blocks[0][:data][:content]).to eq("Special content")
+        end
+      end
+
+      context "when no custom converter matches" do
+        let(:html) { "<blockquote>Regular quote</blockquote>" }
+
+        it "falls back to default handling" do
+          result = described_class.convert(html, custom_converters: {"custom" => custom_converter})
+          blocks = result[:blocks]
+
+          expect(blocks.length).to eq(1)
+          expect(blocks[0][:type]).to eq("quote")
+        end
+      end
+
+      context "with no custom converters" do
+        let(:html) { "<blockquote>[CUSTOM] Content</blockquote>" }
+
+        it "processes normally" do
+          result = described_class.convert(html)
+          blocks = result[:blocks]
+
+          expect(blocks[0][:type]).to eq("quote")
+        end
+      end
+    end
   end
 end

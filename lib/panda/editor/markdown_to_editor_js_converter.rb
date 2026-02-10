@@ -7,12 +7,13 @@ module Panda
     # Converts Markdown to EditorJS format
     # Uses Redcarpet to parse markdown to HTML, then converts HTML to EditorJS blocks
     class MarkdownToEditorJsConverter
-      def self.convert(markdown)
-        new(markdown).convert
+      def self.convert(markdown, custom_converters: nil)
+        new(markdown, custom_converters: custom_converters).convert
       end
 
-      def initialize(markdown)
+      def initialize(markdown, custom_converters: nil)
         @markdown = markdown
+        @custom_converters = custom_converters
       end
 
       def convert
@@ -20,7 +21,8 @@ module Panda
         html = markdown_to_html
 
         # Step 2: Convert HTML to EditorJS using existing converter
-        Panda::Editor::HtmlToEditorJsConverter.convert(html)
+        converters = @custom_converters || Panda::Editor.config.custom_converters
+        Panda::Editor::HtmlToEditorJsConverter.convert(html, custom_converters: converters)
       end
 
       private
