@@ -14,8 +14,11 @@ module Panda
     setting :editor_js_tools, default: []
     setting :editor_js_tool_config, default: {}
 
-    # Custom block renderers
+    # Custom block renderers (EditorJS -> HTML)
     setting :custom_renderers, default: {}
+
+    # Custom block converters (HTML -> EditorJS)
+    setting :custom_converters, default: {}
 
     class Error < StandardError; end
 

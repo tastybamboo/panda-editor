@@ -279,9 +279,47 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       end
 
       it "processes footnotes" do
-        # Redcarpet processes footnotes to HTML
         expect { subject }.not_to raise_error
         expect(subject[:blocks]).to be_an(Array)
+      end
+
+      it "extracts footnotes into paragraph data" do
+        blocks = subject[:blocks]
+        paragraph = blocks.find { |b| b[:type] == "paragraph" }
+
+        expect(paragraph).not_to be_nil
+        expect(paragraph[:data][:text]).not_to include("fnref")
+        expect(paragraph[:data][:text]).not_to include("<sup")
+        expect(paragraph[:data][:footnotes]).to be_an(Array)
+        expect(paragraph[:data][:footnotes].length).to eq(1)
+        expect(paragraph[:data][:footnotes][0][:id]).to eq("fn-1")
+        expect(paragraph[:data][:footnotes][0][:content]).to include("This is the footnote.")
+      end
+
+      it "does not include footnotes div as a separate block" do
+        blocks = subject[:blocks]
+
+        expect(blocks.none? { |b| b[:data][:text]&.include?("footnotes") }).to be true
+      end
+    end
+
+    context "with multiple footnotes" do
+      let(:markdown) do
+        <<~MD
+          First claim[^1] and second claim[^2].
+
+          [^1]: First source.
+          [^2]: Second source.
+        MD
+      end
+
+      it "extracts multiple footnotes" do
+        blocks = subject[:blocks]
+        paragraph = blocks.find { |b| b[:type] == "paragraph" && b[:data].key?(:footnotes) }
+
+        expect(paragraph[:data][:footnotes].length).to eq(2)
+        expect(paragraph[:data][:footnotes][0][:content]).to include("First source.")
+        expect(paragraph[:data][:footnotes][1][:content]).to include("Second source.")
       end
     end
 
@@ -383,6 +421,46 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         expect(Panda::Editor::HtmlToEditorJsConverter).to receive(:convert).and_call_original
 
         subject
+      end
+    end
+
+    context "with custom converters" do
+      let(:custom_converter) do
+        Class.new do
+          def self.convert(node)
+            return nil unless node.element? && node.name == "blockquote"
+
+            first_p = node.at_css("p")
+            return nil unless first_p
+
+            text = first_p.text.strip
+            return nil unless text.start_with?("[!CUSTOM]")
+
+            {
+              type: "custom_block",
+              data: {content: text.sub("[!CUSTOM]", "").strip}
+            }
+          end
+        end
+      end
+
+      it "passes custom converters to HtmlToEditorJsConverter" do
+        markdown = "> [!CUSTOM] Special content"
+        result = described_class.convert(markdown, custom_converters: {"custom" => custom_converter})
+        blocks = result[:blocks]
+
+        expect(blocks.length).to eq(1)
+        expect(blocks[0][:type]).to eq("custom_block")
+        expect(blocks[0][:data][:content]).to eq("Special content")
+      end
+
+      it "uses default converters from config when not specified" do
+        allow(Panda::Editor.config).to receive(:custom_converters).and_return({})
+        expect(Panda::Editor::HtmlToEditorJsConverter).to receive(:convert)
+          .with(anything, custom_converters: {})
+          .and_call_original
+
+        described_class.convert("# Test")
       end
     end
   end
