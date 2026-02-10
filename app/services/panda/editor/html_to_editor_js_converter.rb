@@ -110,19 +110,14 @@ module Panda
                   }
                 }
               when "blockquote"
-                custom_block = try_custom_converters(child)
-                if custom_block
-                  blocks << custom_block
-                else
-                  blocks << {
-                    "type" => "quote",
-                    "data" => {
-                      "text" => process_inline_elements(child),
-                      "caption" => "",
-                      "alignment" => "left"
-                    }
+                blocks << (try_custom_converters(child) || {
+                  "type" => "quote",
+                  "data" => {
+                    "text" => process_inline_elements(child),
+                    "caption" => "",
+                    "alignment" => "left"
                   }
-                end
+                })
               when "text"
                 text = child.text.strip
                 current_text += text if text.present?
@@ -158,19 +153,14 @@ module Panda
             end
 
             # Try custom converters first
-            custom_block = try_custom_converters(node)
-            if custom_block
-              blocks << custom_block
-            else
-              blocks << {
-                "type" => "quote",
-                "data" => {
-                  "text" => process_inline_elements(node),
-                  "caption" => "",
-                  "alignment" => "left"
-                }
+            blocks << (try_custom_converters(node) || {
+              "type" => "quote",
+              "data" => {
+                "text" => process_inline_elements(node),
+                "caption" => "",
+                "alignment" => "left"
               }
-            end
+            })
           end
         end
 
