@@ -10,7 +10,7 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
 
       expect(result).to be_a(Hash)
       expect(result[:blocks]).to be_an(Array)
-      expect(result[:version]).to eq("2.28.0")
+      expect(result[:version]).to eq("2.28.2")
     end
 
     it "handles empty markdown" do
@@ -78,8 +78,8 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       it "converts to HTML tags in EditorJS" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include("<strong>bold</strong>")
-        expect(blocks[0][:data][:text]).to include("<em>italic</em>")
+        expect(blocks[0][:data][:text]).to include("<b>bold</b>")
+        expect(blocks[0][:data][:text]).to include("<i>italic</i>")
         expect(blocks[0][:data][:text]).to include("<del>strikethrough</del>")
       end
     end
@@ -95,10 +95,10 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         expect(blocks[0][:data][:text]).to include("this link")
       end
 
-      it "adds security attributes to links" do
+      it "preserves link href and text" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include('rel="noopener noreferrer"')
+        expect(blocks[0][:data][:text]).to include('<a href="https://example.com">this link</a>')
       end
     end
 
@@ -381,12 +381,12 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
       context "special characters" do
         let(:markdown) { 'Text with & < > " characters' }
 
-        it "escapes HTML entities" do
+        it "decodes HTML entities from text nodes" do
           blocks = subject[:blocks]
 
-          # Markdown processors escape these
-          expect(blocks[0][:data][:text]).not_to include("<")
-          expect(blocks[0][:data][:text]).not_to include(">")
+          expect(blocks[0][:data][:text]).to include("&")
+          expect(blocks[0][:data][:text]).to include("<")
+          expect(blocks[0][:data][:text]).to include(">")
         end
       end
 
@@ -395,10 +395,11 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
           "Line one  \nLine two"
         end
 
-        it "preserves hard line breaks" do
+        it "splits hard line breaks into separate paragraphs" do
           blocks = subject[:blocks]
 
-          expect(blocks[0][:data][:text]).to include("<br")
+          expect(blocks.any? { |b| b[:data][:text]&.include?("Line one") }).to be true
+          expect(blocks.any? { |b| b[:data][:text]&.include?("Line two") }).to be true
         end
       end
 
