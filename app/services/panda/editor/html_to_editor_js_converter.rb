@@ -6,7 +6,7 @@ module Panda
       class ConversionError < StandardError; end
 
       def self.convert(html, custom_converters: {})
-        return {} if html.blank?
+        return {time: Time.current.to_i * 1000, blocks: [], version: "2.28.2"} if html.blank?
 
         # If it's already in EditorJS format, return as is
         return html if html.is_a?(Hash) && (html["blocks"].present? || html[:blocks].present?)
@@ -22,7 +22,6 @@ module Panda
       end
 
       def convert
-        # Parse the HTML content
         doc = Nokogiri::HTML.fragment(@html.to_s)
         raise ConversionError, "Failed to parse HTML content" unless doc
 
@@ -34,36 +33,37 @@ module Panda
         doc.children.each do |node|
           next if footnotes_div?(node)
 
+          # Try custom converters first on every node
+          custom_block = try_custom_converters(node)
+          if custom_block
+            if current_text.present?
+              blocks << create_paragraph_block(current_text)
+              current_text = ""
+            end
+            blocks << custom_block
+            next
+          end
+
           case node.name
           when "h1", "h2", "h3", "h4", "h5", "h6"
-            # Add any accumulated text as a paragraph before the header
             if current_text.present?
               blocks << create_paragraph_block(current_text)
               current_text = ""
             end
 
             blocks << {
-              "type" => "header",
-              "data" => {
-                "text" => node.text.strip,
-                "level" => node.name[1].to_i
+              type: "header",
+              data: {
+                text: node.inner_html.strip,
+                level: node.name[1].to_i
               }
             }
           when "p"
-            # Add any accumulated text first
             if current_text.present?
               blocks << create_paragraph_block(current_text)
               current_text = ""
             end
 
-            # Check for custom converter match
-            custom_block = try_custom_converters(node)
-            if custom_block
-              blocks << custom_block
-              next
-            end
-
-            # Check for footnote references
             if @has_footnotes && node.at_css('sup[id^="fnref"]')
               block = paragraph_block_with_footnotes(node)
               blocks << block if block
@@ -75,21 +75,26 @@ module Panda
               end
             end
           when "div"
-            # Add any accumulated text first
             if current_text.present?
               blocks << create_paragraph_block(current_text)
               current_text = ""
             end
 
-            # Process div children separately
             node.children.each do |child|
+              # Try custom converters on div children too
+              custom_child_block = try_custom_converters(child)
+              if custom_child_block
+                blocks << custom_child_block
+                next
+              end
+
               case child.name
               when "h1", "h2", "h3", "h4", "h5", "h6"
                 blocks << {
-                  "type" => "header",
-                  "data" => {
-                    "text" => child.text.strip,
-                    "level" => child.name[1].to_i
+                  type: "header",
+                  data: {
+                    text: child.inner_html.strip,
+                    level: child.name[1].to_i
                   }
                 }
               when "p"
@@ -103,21 +108,21 @@ module Panda
                 next if items.empty?
 
                 blocks << {
-                  "type" => "list",
-                  "data" => {
-                    "style" => (child.name == "ul") ? "unordered" : "ordered",
-                    "items" => items
+                  type: "list",
+                  data: {
+                    style: (child.name == "ul") ? "unordered" : "ordered",
+                    items: items
                   }
                 }
               when "blockquote"
-                blocks << (try_custom_converters(child) || {
-                  "type" => "quote",
-                  "data" => {
-                    "text" => process_inline_elements(child),
-                    "caption" => "",
-                    "alignment" => "left"
+                blocks << {
+                  type: "quote",
+                  data: {
+                    text: process_inline_elements(child),
+                    caption: "",
+                    alignment: "left"
                   }
-                })
+                }
               when "text"
                 text = child.text.strip
                 current_text += text if text.present?
@@ -129,7 +134,6 @@ module Panda
             text = node.text.strip
             current_text += text if text.present?
           when "ul", "ol"
-            # Add any accumulated text first
             if current_text.present?
               blocks << create_paragraph_block(current_text)
               current_text = ""
@@ -139,40 +143,75 @@ module Panda
             next if items.empty?
 
             blocks << {
-              "type" => "list",
-              "data" => {
-                "style" => (node.name == "ul") ? "unordered" : "ordered",
-                "items" => items
+              type: "list",
+              data: {
+                style: (node.name == "ul") ? "unordered" : "ordered",
+                items: items
               }
             }
           when "blockquote"
-            # Add any accumulated text first
             if current_text.present?
               blocks << create_paragraph_block(current_text)
               current_text = ""
             end
 
-            # Try custom converters first
-            blocks << (try_custom_converters(node) || {
-              "type" => "quote",
-              "data" => {
-                "text" => process_inline_elements(node),
-                "caption" => "",
-                "alignment" => "left"
+            blocks << {
+              type: "quote",
+              data: {
+                text: process_inline_elements(node),
+                caption: "",
+                alignment: "left"
               }
-            })
+            }
+          when "pre"
+            if current_text.present?
+              blocks << create_paragraph_block(current_text)
+              current_text = ""
+            end
+
+            code = node.css("code").first
+            blocks << {
+              type: "code",
+              data: {
+                code: code ? code.text : node.text
+              }
+            }
+          when "table"
+            if current_text.present?
+              blocks << create_paragraph_block(current_text)
+              current_text = ""
+            end
+
+            content = node.css("tr").map do |row|
+              row.css("th, td").map { |cell| cell.inner_html.strip }
+            end
+
+            blocks << {
+              type: "table",
+              data: {
+                withHeadings: node.css("thead").any? || node.css("th").any?,
+                content: content
+              }
+            }
+          when "hr"
+            if current_text.present?
+              blocks << create_paragraph_block(current_text)
+              current_text = ""
+            end
+
+            blocks << {type: "delimiter", data: {}}
           end
         end
 
-        # Add any remaining text
         blocks << create_paragraph_block(current_text) if current_text.present?
 
-        # Return the complete EditorJS structure
         {
-          "time" => Time.current.to_i * 1000,
-          "blocks" => blocks,
-          "version" => "2.28.2"
+          time: Time.current.to_i * 1000,
+          blocks: blocks,
+          version: "2.28.2"
         }
+      rescue ConversionError
+        raise
       rescue => e
         Rails.logger.error "HTML to EditorJS conversion failed: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
@@ -191,9 +230,9 @@ module Panda
 
       def create_paragraph_block(text)
         {
-          "type" => "paragraph",
-          "data" => {
-            "text" => text.strip
+          type: "paragraph",
+          data: {
+            text: text.strip
           }
         }
       end
@@ -270,12 +309,12 @@ module Panda
         result = extract_footnotes_from_paragraph(node)
         return nil if result[:text].empty?
 
-        data = {"text" => result[:text]}
-        data["footnotes"] = result[:footnotes] unless result[:footnotes].empty?
+        data = {text: result[:text]}
+        data[:footnotes] = result[:footnotes] unless result[:footnotes].empty?
 
         {
-          "type" => "paragraph",
-          "data" => data
+          type: "paragraph",
+          data: data
         }
       end
 
@@ -291,9 +330,9 @@ module Panda
 
             if content
               footnotes << {
-                "id" => "fn-#{fn_id}",
-                "content" => content,
-                "position" => char_position
+                id: "fn-#{fn_id}",
+                content: content,
+                position: char_position
               }
             end
           else

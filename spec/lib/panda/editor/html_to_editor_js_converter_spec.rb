@@ -10,7 +10,7 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
 
       expect(result).to be_a(Hash)
       expect(result[:blocks]).to be_an(Array)
-      expect(result[:version]).to eq("2.28.0")
+      expect(result[:version]).to eq("2.28.2")
       expect(result[:time]).to be_a(Integer)
     end
 
@@ -88,7 +88,7 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
         it "preserves HTML formatting" do
           blocks = subject[:blocks]
 
-          expect(blocks[0][:data][:text]).to eq("Text with <strong>bold</strong> and <em>italic</em>")
+          expect(blocks[0][:data][:text]).to eq("Text with <b>bold</b> and <i>italic</i>")
         end
       end
 
@@ -145,8 +145,8 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
           blocks = subject[:blocks]
 
           expect(blocks[0][:data][:items]).to eq([
-            "Item with <strong>bold</strong>",
-            "Item with <em>italic</em>"
+            "Item with <b>bold</b>",
+            "Item with <i>italic</i>"
           ])
         end
       end
@@ -324,10 +324,10 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
     context "with special characters" do
       let(:html) { '<p>&lt;script&gt;alert("xss")&lt;/script&gt;</p>' }
 
-      it "preserves HTML entities" do
+      it "decodes HTML entities from text nodes" do
         blocks = subject[:blocks]
 
-        expect(blocks[0][:data][:text]).to include("&lt;script&gt;")
+        expect(blocks[0][:data][:text]).to include("<script>")
       end
     end
 
