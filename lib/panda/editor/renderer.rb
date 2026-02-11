@@ -29,12 +29,6 @@ module Panda
 
         rendered = @validate_html ? validate_html(rendered) : rendered
 
-        # Append sources section if footnotes were collected
-        if @footnote_registry.any?
-          sources_section = @footnote_registry.render_sources_section
-          rendered = [rendered, sources_section].join("\n")
-        end
-
         rendered.presence || ""
       end
 

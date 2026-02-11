@@ -28,39 +28,16 @@ module Panda
         number
       end
 
-      def render_sources_section
-        return "" if @footnotes.empty?
+      def processed_footnotes
+        return [] if @footnotes.empty?
 
-        footnote_items = @footnotes.map.with_index do |footnote, index|
-          number = index + 1
-          content = process_content(footnote[:content])
-          <<~HTML.strip
-            <li id="fn:#{number}">
-              <p>
-                #{content}
-                <a href="#fnref:#{number}" class="footnote-backref">↩</a>
-              </p>
-            </li>
-          HTML
-        end.join("\n")
-
-        <<~HTML
-          <div class="mx-6 lg:mx-8 mt-4 mb-8">
-            <div class="footnotes-section bg-gray-50 rounded-lg overflow-hidden">
-              <button class="footnotes-header w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" data-footnotes-target="toggle" data-action="click->footnotes#toggle">
-                <h3 class="text-sm font-unbounded font-medium text-gray-900 m-0">Sources/References</h3>
-                <svg class="footnotes-chevron w-5 h-5 text-gray-600" data-footnotes-target="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </button>
-              <div class="footnotes-content" data-footnotes-target="content">
-                <ol class="footnotes text-sm text-gray-700 space-y-2 px-4 pb-3">
-          #{footnote_items}
-                </ol>
-              </div>
-            </div>
-          </div>
-        HTML
+        @footnotes.map.with_index do |footnote, index|
+          {
+            number: index + 1,
+            id: footnote[:id],
+            content: process_content(footnote[:content])
+          }
+        end
       end
 
       def any?

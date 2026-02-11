@@ -646,7 +646,7 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       }
     end
 
-    it "appends sources section when footnotes exist" do
+    it "renders footnote markers in paragraphs and exposes footnote data" do
       renderer = described_class.new(content_with_footnotes)
       output = renderer.render
 
@@ -657,20 +657,19 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       expect(output).to include('<sup id="fnref:2"')
       expect(output).to include('<a href="#fn:2" class="footnote">2</a>')
 
-      # Check that sources section exists
-      expect(output).to include("Sources/References")
-      expect(output).to include("footnotes-section")
+      # Sources section is no longer auto-appended to rendered output
+      expect(output).not_to include("Sources/References")
 
-      # Check that footnote content is in sources section
-      expect(output).to include("Study reference needed for ADHD self-harm statistic.")
-      expect(output).to include("Study reference needed for autism suicide statistic.")
-
-      # Check that backlinks exist
-      expect(output).to include('<a href="#fnref:1" class="footnote-backref">↩</a>')
-      expect(output).to include('<a href="#fnref:2" class="footnote-backref">↩</a>')
+      # Footnote data is available via the registry
+      footnotes = renderer.footnote_registry.processed_footnotes
+      expect(footnotes.length).to eq(2)
+      expect(footnotes[0][:number]).to eq(1)
+      expect(footnotes[0][:content]).to include("Study reference needed for ADHD self-harm statistic.")
+      expect(footnotes[1][:number]).to eq(2)
+      expect(footnotes[1][:content]).to include("Study reference needed for autism suicide statistic.")
     end
 
-    it "does not append sources section when no footnotes" do
+    it "returns empty processed_footnotes when no footnotes" do
       content_without_footnotes = {
         "blocks" => [
           {
@@ -684,7 +683,7 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       output = renderer.render
 
       expect(output).not_to include("Sources/References")
-      expect(output).not_to include("footnotes-section")
+      expect(renderer.footnote_registry.processed_footnotes).to be_empty
     end
 
     it "handles duplicate footnote IDs correctly" do
@@ -722,14 +721,13 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       renderer = described_class.new(content_with_duplicate_footnotes)
       output = renderer.render
 
-      # Both should reference footnote 1
-      expect(output.scan("fnref:1").length).to eq(3) # 2 markers + 1 in backref
-      expect(output.scan("fn:1").length).to eq(3) # 2 hrefs + 1 in li id
+      # Both markers in the text should reference footnote 1
+      expect(output.scan("fnref:1").length).to eq(2)
 
-      # Only one entry in sources section (appears in tooltips too, so check sources specifically)
-      sources_section = output.match(/<ol class="footnotes.*?<\/ol>/m)[0]
-      expect(sources_section.scan('<li id="fn:').length).to eq(1)
-      expect(sources_section).to include("Important study")
+      # Only one entry in processed footnotes (deduplicated)
+      footnotes = renderer.footnote_registry.processed_footnotes
+      expect(footnotes.length).to eq(1)
+      expect(footnotes[0][:content]).to include("Important study")
     end
 
     describe "autolink_urls option" do
@@ -755,33 +753,29 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
 
       it "converts plain URLs to links when autolink_urls is true" do
         renderer = described_class.new(content_with_url, autolink_urls: true)
-        output = renderer.render
+        renderer.render
 
-        # Check the sources section contains the linked URL
-        expect(output).to include("Sources/References")
-        expect(output).to include('<a href="https://doi.org/10.1111/camh.12471" target="_blank" rel="noopener noreferrer">https://doi.org/10.1111/camh.12471</a>')
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes.length).to eq(1)
+        expect(footnotes[0][:content]).to include('<a href="https://doi.org/10.1111/camh.12471" target="_blank" rel="noopener noreferrer">https://doi.org/10.1111/camh.12471</a>')
       end
 
       it "does not convert URLs when autolink_urls is false" do
         renderer = described_class.new(content_with_url, autolink_urls: false)
-        output = renderer.render
+        renderer.render
 
-        # Check the sources section contains the plain URL
-        expect(output).to include("Sources/References")
-        expect(output).to include("https://doi.org/10.1111/camh.12471")
-        # Make sure it's not linked (the URL should appear as plain text, not in href)
-        expect(output).not_to match(%r{<a[^>]*href="https://doi\.org/10\.1111/camh\.12471"[^>]*>https://doi\.org/10\.1111/camh\.12471</a>})
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("https://doi.org/10.1111/camh.12471")
+        expect(footnotes[0][:content]).not_to match(%r{<a[^>]*href="https://doi\.org/10\.1111/camh\.12471"[^>]*>https://doi\.org/10\.1111/camh\.12471</a>})
       end
 
       it "does not convert URLs when autolink_urls is not specified" do
         renderer = described_class.new(content_with_url)
-        output = renderer.render
+        renderer.render
 
-        # Check the sources section contains the plain URL
-        expect(output).to include("Sources/References")
-        expect(output).to include("https://doi.org/10.1111/camh.12471")
-        # Make sure it's not linked
-        expect(output).not_to match(%r{<a[^>]*href="https://doi\.org/10\.1111/camh\.12471"[^>]*>https://doi\.org/10\.1111/camh\.12471</a>})
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("https://doi.org/10.1111/camh.12471")
+        expect(footnotes[0][:content]).not_to match(%r{<a[^>]*href="https://doi\.org/10\.1111/camh\.12471"[^>]*>https://doi\.org/10\.1111/camh\.12471</a>})
       end
 
       it "does not double-link URLs that are already in anchor tags" do
@@ -804,10 +798,10 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         }
 
         renderer = described_class.new(content_with_existing_link, autolink_urls: true)
-        output = renderer.render
+        renderer.render
 
-        # Should only have one <a> tag for this URL
-        expect(output.scan(%r{<a[^>]*href="https://example\.com"}).length).to eq(1)
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content].scan(%r{<a[^>]*href="https://example\.com"}).length).to eq(1)
       end
 
       it "handles multiple URLs in one footnote" do
@@ -830,10 +824,11 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         }
 
         renderer = described_class.new(content_with_multiple_urls, autolink_urls: true)
-        output = renderer.render
+        renderer.render
 
-        expect(output).to include('<a href="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a>')
-        expect(output).to include('<a href="https://another.org" target="_blank" rel="noopener noreferrer">https://another.org</a>')
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include('<a href="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a>')
+        expect(footnotes[0][:content]).to include('<a href="https://another.org" target="_blank" rel="noopener noreferrer">https://another.org</a>')
       end
     end
 
@@ -860,33 +855,32 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
 
       it "renders markdown formatting when markdown is true" do
         renderer = described_class.new(content_with_markdown, markdown: true)
-        output = renderer.render
+        renderer.render
 
-        # Check that markdown was processed
-        expect(output).to include("<strong>Important study</strong>")
-        expect(output).to include("<em>ADHD treatment</em>")
-        # Markdown's autolink should handle the URL
-        expect(output).to include('<a href="https://example.com"')
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("<strong>Important study</strong>")
+        expect(footnotes[0][:content]).to include("<em>ADHD treatment</em>")
+        expect(footnotes[0][:content]).to include('<a href="https://example.com"')
       end
 
       it "does not render markdown when markdown is false" do
         renderer = described_class.new(content_with_markdown, markdown: false)
-        output = renderer.render
+        renderer.render
 
-        # Check that markdown was NOT processed
-        expect(output).to include("**Important study**")
-        expect(output).to include("*ADHD treatment*")
-        expect(output).not_to include("<strong>")
-        expect(output).not_to include("<em>")
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("**Important study**")
+        expect(footnotes[0][:content]).to include("*ADHD treatment*")
+        expect(footnotes[0][:content]).not_to include("<strong>")
+        expect(footnotes[0][:content]).not_to include("<em>")
       end
 
       it "does not render markdown when markdown is not specified" do
         renderer = described_class.new(content_with_markdown)
-        output = renderer.render
+        renderer.render
 
-        # Check that markdown was NOT processed (default behavior)
-        expect(output).to include("**Important study**")
-        expect(output).to include("*ADHD treatment*")
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("**Important study**")
+        expect(footnotes[0][:content]).to include("*ADHD treatment*")
       end
 
       it "renders inline code with markdown" do
@@ -909,9 +903,10 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         }
 
         renderer = described_class.new(content, markdown: true)
-        output = renderer.render
+        renderer.render
 
-        expect(output).to include("<code>process()</code>")
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("<code>process()</code>")
       end
 
       it "renders strikethrough with markdown" do
@@ -934,9 +929,10 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         }
 
         renderer = described_class.new(content, markdown: true)
-        output = renderer.render
+        renderer.render
 
-        expect(output).to include("<del>incorrect</del>")
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include("<del>incorrect</del>")
       end
 
       it "handles markdown links with proper attributes" do
@@ -959,10 +955,10 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         }
 
         renderer = described_class.new(content, markdown: true)
-        output = renderer.render
+        renderer.render
 
-        # Check that markdown link was rendered with proper attributes
-        expect(output).to include('<a href="https://example.com" target="_blank" rel="noopener noreferrer">this study</a>')
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include('<a href="https://example.com" target="_blank" rel="noopener noreferrer">this study</a>')
       end
 
       it "can use both markdown and autolink_urls together" do
@@ -987,12 +983,12 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         # When both markdown and autolink_urls are true, markdown processes first,
         # then autolink_urls runs (but skips already-linked URLs)
         renderer = described_class.new(content, markdown: true, autolink_urls: true)
-        output = renderer.render
+        renderer.render
 
-        # URL should be linked (by markdown's autolink)
-        expect(output).to include('<a href="https://example.com"')
+        footnotes = renderer.footnote_registry.processed_footnotes
+        expect(footnotes[0][:content]).to include('<a href="https://example.com"')
         # Should only have one link tag (not doubled)
-        expect(output.scan(%r{<a[^>]*href="https://example\.com"}).length).to eq(1)
+        expect(footnotes[0][:content].scan(%r{<a[^>]*href="https://example\.com"}).length).to eq(1)
       end
 
       it "strips wrapping paragraph tags from markdown output" do
@@ -1015,12 +1011,12 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         }
 
         renderer = described_class.new(content, markdown: true)
-        output = renderer.render
+        renderer.render
 
+        footnotes = renderer.footnote_registry.processed_footnotes
         # The markdown processor wraps content in <p> tags, but we strip them
-        # since the template already provides <p> tags
-        # Should not have nested <p> tags
-        expect(output).not_to match(%r{<p>.*<p>.*Simple footnote text.*</p>.*</p>}m)
+        # processed_footnotes content should not start with <p> wrapper
+        expect(footnotes[0][:content]).not_to match(%r{^<p>.*</p>$}m)
       end
     end
   end
