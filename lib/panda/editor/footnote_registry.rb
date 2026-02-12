@@ -52,12 +52,11 @@ module Panda
       private
 
       def process_content(content)
-        # Apply markdown processing if enabled
-        content = render_markdown(content) if @markdown
+        # If content already contains HTML links, it's pre-formatted and
+        # reprocessing would produce broken nested <a> tags
+        return content if content.include?("<a ")
 
-        # Apply URL autolinking if enabled
-        # Note: Markdown already includes autolink, but custom autolink_urls can still be used
-        # if needed for additional URL patterns. The autolink_urls method skips already-linked URLs.
+        content = render_markdown(content) if @markdown
         content = autolink_urls(content) if @autolink_urls
 
         content
