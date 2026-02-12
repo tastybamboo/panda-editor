@@ -40,6 +40,7 @@ module Panda
               blocks << create_paragraph_block(current_text)
               current_text = ""
             end
+            extract_footnotes_from_custom_block(custom_block) if @has_footnotes
             blocks << custom_block
             next
           end
@@ -353,6 +354,38 @@ module Panda
           node.text.length
         else
           node.children.sum { |child| plain_text_length(child) }
+        end
+      end
+
+      # Post-process custom block to extract footnote markers from HTML content.
+      # Replaces raw <sup id="fnref..."> tags with {{FOOTNOTE:id}} placeholders
+      # and adds a footnotes array to the block data.
+      def extract_footnotes_from_custom_block(block)
+        data = block["data"] || block[:data]
+        return unless data
+
+        content = data["content"] || data[:content]
+        return unless content.is_a?(String)
+
+        fragment = Nokogiri::HTML.fragment(content)
+        sups = fragment.css('sup[id^="fnref"]')
+        return if sups.empty?
+
+        footnotes = []
+        sups.each do |sup|
+          fn_id = sup["id"].to_s.sub(/^fnref/, "")
+          fn_content = @footnote_definitions[fn_id]
+          next unless fn_content
+
+          footnote_id = "fn-#{fn_id}"
+          footnotes << {"id" => footnote_id, "content" => fn_content}
+          sup.replace("{{FOOTNOTE:#{footnote_id}}}")
+        end
+
+        if footnotes.any?
+          content_key = data.key?("content") ? "content" : :content
+          data["footnotes"] = footnotes
+          data[content_key] = fragment.to_html
         end
       end
     end
