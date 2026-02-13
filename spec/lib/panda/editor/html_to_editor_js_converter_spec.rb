@@ -452,6 +452,21 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
         converter
       end
 
+      # Custom converter that preserves inner HTML (like CalloutConverter does)
+      let(:html_custom_converter) do
+        Class.new do
+          def self.convert(node)
+            return nil unless node.element? && node.name == "blockquote"
+
+            first_p = node.at_css("p")
+            return nil unless first_p&.inner_html&.strip&.start_with?("[!CALLOUT]")
+
+            content = first_p.inner_html.strip.sub("[!CALLOUT]", "").sub(/\A\s*<br\s*\/?>\s*/, "").strip
+            {"type" => "callout", "data" => {"type" => "evidence", "content" => content}}
+          end
+        end
+      end
+
       context "when a custom converter matches" do
         let(:html) { "<blockquote>[CUSTOM] Special content</blockquote>" }
 
@@ -485,6 +500,63 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
           blocks = result[:blocks]
 
           expect(blocks[0][:type]).to eq("quote")
+        end
+      end
+
+      context "with footnotes inside custom block content" do
+        let(:html) do
+          <<~HTML
+            <blockquote><p>[!CALLOUT]<br>Studies show this is true<sup id="fnref1"><a href="#fn1">1</a></sup> and also this<sup id="fnref2"><a href="#fn2">2</a></sup>.</p></blockquote>
+            <div class="footnotes"><hr><ol>
+              <li id="fn1"><p>First citation.&nbsp;<a href="#fnref1">&#8617;</a></p></li>
+              <li id="fn2"><p>Second citation.&nbsp;<a href="#fnref2">&#8617;</a></p></li>
+            </ol></div>
+          HTML
+        end
+
+        it "extracts footnotes into the custom block data" do
+          result = described_class.convert(html, custom_converters: {"callout" => html_custom_converter})
+          blocks = result[:blocks]
+
+          expect(blocks.length).to eq(1)
+          block = blocks[0]
+          expect(block["type"]).to eq("callout")
+          expect(block["data"]["footnotes"]).to be_an(Array)
+          expect(block["data"]["footnotes"].length).to eq(2)
+          expect(block["data"]["footnotes"][0]).to eq({"id" => "fn-1", "content" => "First citation."})
+          expect(block["data"]["footnotes"][1]).to eq({"id" => "fn-2", "content" => "Second citation."})
+        end
+
+        it "replaces raw <sup> tags with placeholder tokens" do
+          result = described_class.convert(html, custom_converters: {"callout" => html_custom_converter})
+          content = result[:blocks][0]["data"]["content"]
+
+          expect(content).to include("{{FOOTNOTE:fn-1}}")
+          expect(content).to include("{{FOOTNOTE:fn-2}}")
+          expect(content).not_to include("<sup")
+          expect(content).not_to include("fnref")
+        end
+      end
+
+      context "with footnotes in both custom block and paragraph" do
+        let(:html) do
+          <<~HTML
+            <blockquote><p>[!CALLOUT]<br>Callout claim<sup id="fnref1"><a href="#fn1">1</a></sup>.</p></blockquote>
+            <p>Paragraph claim<sup id="fnref2"><a href="#fn2">2</a></sup>.</p>
+            <div class="footnotes"><hr><ol>
+              <li id="fn1"><p>Callout citation.&nbsp;<a href="#fnref1">&#8617;</a></p></li>
+              <li id="fn2"><p>Paragraph citation.&nbsp;<a href="#fnref2">&#8617;</a></p></li>
+            </ol></div>
+          HTML
+        end
+
+        it "extracts footnotes from both block types" do
+          result = described_class.convert(html, custom_converters: {"callout" => html_custom_converter})
+          blocks = result[:blocks]
+
+          expect(blocks.length).to eq(2)
+          expect(blocks[0]["data"]["footnotes"]).to eq([{"id" => "fn-1", "content" => "Callout citation."}])
+          expect(blocks[1][:data][:footnotes]).to eq([{id: "fn-2", content: "Paragraph citation.", position: 15}])
         end
       end
     end
