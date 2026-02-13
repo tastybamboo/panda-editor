@@ -367,6 +367,31 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
   return config
 }
 
+/**
+ * Patches LinkAutocomplete.isUrl to accept relative URLs (starting with /)
+ * and anchor links (starting with #) in addition to the default http/https/www patterns.
+ */
+export function patchLinkAutocomplete(win) {
+  const w = win || window
+  const LinkAutocomplete = w.LinkAutocomplete
+
+  if (!LinkAutocomplete || typeof LinkAutocomplete.isUrl !== 'function') {
+    console.warn('[Panda CMS] LinkAutocomplete not loaded, skipping isUrl patch')
+    return
+  }
+
+  const originalIsUrl = LinkAutocomplete.isUrl.bind(LinkAutocomplete)
+
+  LinkAutocomplete.isUrl = (str) => {
+    if (typeof str === 'string' && (str.startsWith('/') || str.startsWith('#'))) {
+      return true
+    }
+    return originalIsUrl(str)
+  }
+
+  console.debug('[Panda CMS] Patched LinkAutocomplete.isUrl for relative URLs and anchors')
+}
+
 export function initializeEditorUndo(editor, win) {
   const w = win || window
   if (w.Undo) {

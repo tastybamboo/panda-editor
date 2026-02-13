@@ -1,5 +1,5 @@
 import { ResourceLoader } from "./resource_loader.js"
-import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig, initializeEditorUndo } from "./editor_js_config.js"
+import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig, initializeEditorUndo, patchLinkAutocomplete } from "./editor_js_config.js"
 import { CSSExtractor } from "./css_extractor.js"
 
 export class EditorJSInitializer {
@@ -86,6 +86,9 @@ export class EditorJSInitializer {
           }
         }
       }
+
+      const win = this.document.defaultView || window
+      patchLinkAutocomplete(win)
 
       console.debug('[Panda CMS] All tools successfully loaded and verified')
     } catch (error) {
