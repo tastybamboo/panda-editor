@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "panda-core" # Must load before panda-editor for ModuleRegistry
   spec.add_dependency "rails", ">= 7.1"
   spec.add_dependency "redcarpet", "~> 3.6"
-  spec.add_dependency "sanitize", "~> 6.0"
+  spec.add_dependency "sanitize", ">= 6.0"
 
   # Development dependencies
   spec.add_development_dependency "factory_bot_rails", "~> 6.2"
