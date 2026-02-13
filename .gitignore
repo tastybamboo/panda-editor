@@ -13,6 +13,7 @@
 /spec/dummy/db/*.sqlite3-journal
 /spec/dummy/storage/
 /spec/dummy/public/assets/
+/spec/examples.txt
 
 # Ignore built gem files
 *.gem
