@@ -390,6 +390,40 @@ RSpec.describe Panda::Editor::MarkdownToEditorJsConverter do
         end
       end
 
+      context "smart typography" do
+        it "converts -- to en dash in paragraph text" do
+          result = described_class.new("Some text -- with en dash").convert
+          blocks = result[:blocks]
+
+          expect(blocks[0][:data][:text]).to include("\u2013")
+          expect(blocks[0][:data][:text]).not_to include("--")
+        end
+
+        it "converts --- to em dash in paragraph text" do
+          result = described_class.new("Some text --- with em dash").convert
+          blocks = result[:blocks]
+
+          expect(blocks[0][:data][:text]).to include("\u2014")
+        end
+
+        it "preserves -- in fenced code blocks" do
+          markdown = "```\nvalue -- other\n```"
+          result = described_class.new(markdown).convert
+          blocks = result[:blocks]
+          code_block = blocks.find { |b| b[:type] == "code" }
+
+          expect(code_block[:data][:code]).to include("--")
+          expect(code_block[:data][:code]).not_to include("\u2013")
+        end
+
+        it "preserves -- in inline code" do
+          result = described_class.new("Use `x -- y` in your code").convert
+          blocks = result[:blocks]
+
+          expect(blocks[0][:data][:text]).to include("<code>x -- y</code>")
+        end
+      end
+
       context "hard line breaks" do
         let(:markdown) do
           "Line one  \nLine two"

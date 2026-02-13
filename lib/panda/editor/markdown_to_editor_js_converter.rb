@@ -28,7 +28,7 @@ module Panda
       private
 
       def markdown_to_html
-        renderer = Redcarpet::Render::HTML.new(
+        renderer = Redcarpet::Render::SmartyHTML.new(
           hard_wrap: true,
           link_attributes: {rel: "noopener noreferrer"}
         )
