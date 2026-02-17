@@ -64,8 +64,8 @@ export class EditorJSInitializer {
       for (const resource of EDITOR_JS_RESOURCES.slice(1)) {
         try {
           await ResourceLoader.loadScript(this.document, this.document.head, resource)
-          // Extract tool name from resource URL
-          const toolName = resource.split('/').pop().split('@')[0]
+          // Extract tool name from resource URL, stripping version (@x.y.z) and file extension (.js)
+          const toolName = resource.split('/').pop().split('@')[0].replace(/\.js$/, '')
           // Wait for tool to be initialized
           const toolClass = await this.waitForTool(toolName)
 
@@ -77,7 +77,7 @@ export class EditorJSInitializer {
 
           console.debug(`[Panda CMS] Successfully loaded tool: ${toolName}`)
         } catch (error) {
-          const toolName = resource.split('/').pop().split('@')[0]
+          const toolName = resource.split('/').pop().split('@')[0].replace(/\.js$/, '')
           if (OPTIONAL_TOOLS.includes(toolName)) {
             console.warn(`[Panda CMS] Optional tool failed to load (continuing): ${toolName}`, error)
           } else {
@@ -119,8 +119,8 @@ export class EditorJSInitializer {
       return null
     }
 
-    // Clean up tool name to handle npm package format
-    const cleanToolName = toolName.split('/').pop().replace('@', '')
+    // Clean up tool name to handle npm package format and local file paths
+    const cleanToolName = toolName.split('/').pop().replace('@', '').replace(/\.js$/, '')
 
     const toolMapping = {
       'paragraph': 'Paragraph',
