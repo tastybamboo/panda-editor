@@ -247,17 +247,17 @@ module Panda
           when "text"
             result += child.text
           when "strong", "b"
-            result += "<b>#{child.text}</b>"
+            result += "<b>#{process_inline_elements(child)}</b>"
           when "em", "i"
-            result += "<i>#{child.text}</i>"
+            result += "<i>#{process_inline_elements(child)}</i>"
           when "a"
             href = child["href"]
-            text = child.text.strip
+            inner = process_inline_elements(child)
             if href&.start_with?("mailto:")
               email = href.sub("mailto:", "")
-              result += "<a href=\"mailto:#{email}\">#{text}</a>"
+              result += "<a href=\"mailto:#{email}\">#{inner}</a>"
             else
-              result += "<a href=\"#{href}\">#{text}</a>"
+              result += "<a href=\"#{href}\">#{inner}</a>"
             end
           else
             result += if child.text?

@@ -101,6 +101,56 @@ RSpec.describe Panda::Editor::HtmlToEditorJsConverter do
           expect(blocks[0][:data][:text]).to include('<a href="https://example.com">a link</a>')
         end
       end
+
+      context "with links inside bold" do
+        let(:html) { '<p>Text with <strong><a href="/about">About us</a></strong></p>' }
+
+        it "preserves both bold and link" do
+          blocks = subject[:blocks]
+
+          expect(blocks[0][:data][:text]).to eq('Text with <b><a href="/about">About us</a></b>')
+        end
+      end
+
+      context "with bold inside links" do
+        let(:html) { '<p>Text with <a href="/about"><strong>bold link</strong></a></p>' }
+
+        it "preserves both link and bold" do
+          blocks = subject[:blocks]
+
+          expect(blocks[0][:data][:text]).to eq('Text with <a href="/about"><b>bold link</b></a>')
+        end
+      end
+
+      context "with italic inside links" do
+        let(:html) { '<p>Click <a href="/page"><em>here</em></a> for more</p>' }
+
+        it "preserves both link and italic" do
+          blocks = subject[:blocks]
+
+          expect(blocks[0][:data][:text]).to eq('Click <a href="/page"><i>here</i></a> for more')
+        end
+      end
+
+      context "with links inside italic" do
+        let(:html) { '<p>See <em><a href="/ref">reference</a></em></p>' }
+
+        it "preserves both italic and link" do
+          blocks = subject[:blocks]
+
+          expect(blocks[0][:data][:text]).to eq('See <i><a href="/ref">reference</a></i>')
+        end
+      end
+
+      context "with deeply nested inline elements" do
+        let(:html) { '<p><strong><em><a href="/deep">deep link</a></em></strong></p>' }
+
+        it "preserves all nesting levels" do
+          blocks = subject[:blocks]
+
+          expect(blocks[0][:data][:text]).to eq('<b><i><a href="/deep">deep link</a></i></b>')
+        end
+      end
     end
 
     context "with lists" do
