@@ -21,8 +21,7 @@ if (window.PANDA_CMS_EDITOR_JS_RESOURCES) {
 export const EDITOR_JS_CSS = `
   .codex-editor {
     position: relative;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     overflow: hidden;
   }
   .codex-editor::before {
