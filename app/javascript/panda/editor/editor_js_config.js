@@ -4,7 +4,7 @@ export const EDITOR_JS_RESOURCES = [
   "https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1",
   "https://cdn.jsdelivr.net/npm/@editorjs/nested-list@1.4.2",
   "https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0",
-  "https://cdn.jsdelivr.net/npm/@editorjs/simple-image@1.6.0",
+  "https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3",
   "https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0",
   "https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0",
   "https://cdn.jsdelivr.net/npm/@editorjs/link@2.6.2",
@@ -288,10 +288,17 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
         }
       },
       image: {
-        class: win.SimpleImage,
+        class: win.ImageTool,
         inlineToolbar: true,
         config: {
-          placeholder: 'Paste an image URL...'
+          endpoints: {
+            byFile: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload
+          },
+          field: 'image',
+          types: 'image/*',
+          additionalRequestHeaders: {
+            'X-CSRF-Token': win.PANDA_CMS_CSRF_TOKEN
+          }
         }
       },
       table: {
