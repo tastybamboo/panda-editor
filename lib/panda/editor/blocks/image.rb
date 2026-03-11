@@ -5,7 +5,7 @@ module Panda
     module Blocks
       class Image < Base
         def render
-          url = data["url"]
+          url = data.dig("file", "url") || data["url"]
           caption = sanitize(data["caption"])
           with_border = data["withBorder"]
           with_background = data["withBackground"]

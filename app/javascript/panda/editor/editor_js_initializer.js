@@ -128,7 +128,7 @@ export class EditorJSInitializer {
       'nested-list': 'NestedList',
       'list': 'NestedList',
       'quote': 'Quote',
-      'simple-image': 'SimpleImage',
+      'image': 'ImageTool',
       'table': 'Table',
       'embed': 'Embed',
       'link': 'LinkTool',
@@ -260,6 +260,20 @@ export class EditorJSInitializer {
             config: {
               quotePlaceholder: 'Enter a quote',
               captionPlaceholder: 'Quote\'s author'
+            }
+          },
+          image: {
+            class: win.ImageTool,
+            inlineToolbar: true,
+            config: {
+              endpoints: {
+                byFile: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload
+              },
+              field: 'image',
+              types: 'image/*',
+              additionalRequestHeaders: {
+                'X-CSRF-Token': csrfToken
+              }
             }
           },
           linkTool: {
