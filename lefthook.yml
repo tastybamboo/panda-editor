@@ -1,6 +1,10 @@
 ---
 assert_lefthook_installed: true
 colors: true
+post-commit:
+  jobs:
+    - name: auto-bundle-update
+      run: bash bin/bundle-auto-update
 pre-commit:
   parallel: true
   jobs:
