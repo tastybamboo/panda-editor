@@ -17,6 +17,7 @@ module Panda
         markdown = options.delete(:markdown) || false
         @footnote_registry = FootnoteRegistry.new(autolink_urls: autolink_urls, markdown: markdown)
         @options[:footnote_registry] = @footnote_registry
+        @options[:slug_registry] ||= Hash.new(0)
       end
 
       def render
