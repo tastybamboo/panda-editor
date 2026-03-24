@@ -44,10 +44,10 @@ module Panda
         if content.is_a?(String)
           begin
             parsed_content = JSON.parse(content)
-            if parsed_content.is_a?(Hash) && parsed_content["blocks"].present?
-              self.cached_content = render_and_cache_with_footnotes(parsed_content, renderer_options)
+            self.cached_content = if parsed_content.is_a?(Hash) && parsed_content["blocks"].present?
+              render_and_cache_with_footnotes(parsed_content, renderer_options)
             else
-              self.cached_content = content
+              content
             end
           rescue JSON::ParserError
             # If it's not JSON, treat it as plain text
