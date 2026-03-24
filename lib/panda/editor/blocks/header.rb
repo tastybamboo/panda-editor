@@ -19,7 +19,7 @@ module Panda
             .downcase
             .gsub(/[^a-z0-9\s-]/, "") # Remove non-alphanumeric (keep spaces/hyphens)
             .gsub(/\s+/, "-")          # Spaces to hyphens
-            .gsub(/-+/, "-")           # Collapse multiple hyphens
+            .squeeze("-")              # Collapse multiple hyphens
             .sub(/\A-/, "")            # Strip leading hyphen
             .sub(/-\z/, "")            # Strip trailing hyphen
         end

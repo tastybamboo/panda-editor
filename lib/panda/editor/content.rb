@@ -45,7 +45,7 @@ module Panda
           begin
             parsed_content = JSON.parse(content)
             self.cached_content = if parsed_content.is_a?(Hash) && parsed_content["blocks"].present?
-              Panda::Editor::Renderer.new(parsed_content, renderer_options).render
+              render_and_cache_with_footnotes(parsed_content, renderer_options)
             else
               content
             end
@@ -55,10 +55,29 @@ module Panda
           end
         elsif content.is_a?(Hash) && content["blocks"].present?
           # Process EditorJS content
-          self.cached_content = Panda::Editor::Renderer.new(content, renderer_options).render
+          self.cached_content = render_and_cache_with_footnotes(content, renderer_options)
         else
           # For any other case, store as is
           self.cached_content = content.to_s
+        end
+      end
+
+      private
+
+      def render_and_cache_with_footnotes(parsed_content, renderer_options)
+        renderer = Panda::Editor::Renderer.new(parsed_content, renderer_options)
+        html = renderer.render
+
+        # Store structured data with pre-computed footnotes for JSONB columns,
+        # plain HTML for text columns (e.g. Post.cached_content)
+        column = self.class.column_for_attribute(:cached_content)
+        if column.type == :jsonb
+          {
+            "html" => html,
+            "footnotes" => renderer.footnote_registry.processed_footnotes
+          }
+        else
+          html
         end
       end
     end
