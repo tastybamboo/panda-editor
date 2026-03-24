@@ -69,7 +69,8 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
     }
   end
 
-  it "renders complex content with all edge cases" do
+  it "renders complex content with all edge cases" do # rubocop:disable RSpec/ExampleLength
+    Rails.cache.clear
     rendered = described_class.new(complex_content).render
     normalized_rendered = normalize_html(rendered)
 
@@ -85,7 +86,7 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         "<li>Second main item</li>" \
       "</ul>"
     )
-    expect(normalized_rendered).to include("<h2><i>Styled</i> Heading</h2>")
+    expect(normalized_rendered).to include('<h2 id="styled-heading"><i>Styled</i> Heading</h2>')
     expect(normalized_rendered).to include(
       '<figure class="text-center">' \
         "<blockquote><p>Quote with <u>underline</u></p></blockquote>" \
@@ -240,6 +241,8 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
   end
 
   context "with block combinations" do
+    before { Rails.cache.clear }
+
     let(:sample_blocks) do
       [
         {
@@ -260,7 +263,7 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       expect(normalize_html(rendered)).to eq(
         normalize_html(
           '<section class="content-section">' \
-            "<h2>Test Header</h2>" \
+            '<h2 id="test-header">Test Header</h2>' \
             "<p>Test content</p>" \
           "</section>"
         )
@@ -273,7 +276,7 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
         normalize_html(
           "<article>" \
             "<h1>Article Title</h1>" \
-            "<h2>Test Header</h2>" \
+            '<h2 id="test-header">Test Header</h2>' \
             "<p>Test content</p>" \
           "</article>"
         )
@@ -285,7 +288,7 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       expect(normalize_html(rendered)).to eq(
         normalize_html(
           "<article>" \
-            "<h2>Test Header</h2>" \
+            '<h2 id="test-header">Test Header</h2>' \
             "<p>Test content</p>" \
           "</article>"
         )
