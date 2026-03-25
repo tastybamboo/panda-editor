@@ -1,15 +1,15 @@
 export const EDITOR_JS_RESOURCES = [
-  "https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2",
-  "https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.3",
-  "https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1",
-  "https://cdn.jsdelivr.net/npm/@editorjs/nested-list@1.4.2",
-  "https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0",
-  "https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3",
-  "https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0",
-  "https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0",
-  "https://cdn.jsdelivr.net/npm/@editorjs/link@2.6.2",
-  "https://cdn.jsdelivr.net/npm/@editorjs/attaches@1.3.0",
-  "https://cdn.jsdelivr.net/npm/editorjs-undo@2.0.28",
+  "/panda/editor/vendor/@editorjs--editorjs@2.31.5.js",
+  "/panda/editor/vendor/@editorjs--paragraph@2.11.7.js",
+  "/panda/editor/vendor/@editorjs--header@2.8.8.js",
+  "/panda/editor/vendor/@editorjs--nested-list@1.4.3.js",
+  "/panda/editor/vendor/@editorjs--quote@2.7.6.js",
+  "/panda/editor/vendor/@editorjs--image@2.10.3.js",
+  "/panda/editor/vendor/@editorjs--table@2.4.5.js",
+  "/panda/editor/vendor/@editorjs--embed@2.8.0.js",
+  "/panda/editor/vendor/@editorjs--link@2.6.2.js",
+  "/panda/editor/vendor/@editorjs--attaches@1.3.2.js",
+  "/panda/editor/vendor/editorjs-undo@2.0.28.js",
   "/panda/editor/vendor/link-autocomplete.js"
 ]
 
