@@ -1023,6 +1023,49 @@ RSpec.describe Panda::Editor::Renderer, :editorjs do
       end
     end
   end
+
+  describe "PDF block" do
+    let(:pdf_content) do
+      {
+        "blocks" => [
+          {
+            "type" => "pdf",
+            "data" => {
+              "file" => {
+                "url" => "/rails/active_storage/blobs/redirect/abc123/doc.pdf",
+                "name" => "doc.pdf",
+                "size" => 51200,
+                "extension" => "pdf",
+                "signed_id" => "abc123"
+              },
+              "title" => "doc.pdf"
+            }
+          }
+        ]
+      }
+    end
+
+    it "renders a PDF viewer via the renderer" do
+      Rails.cache.clear
+      rendered = described_class.new(pdf_content).render
+      expect(rendered).to include('class="panda-pdf-viewer"')
+      expect(rendered).to include("data-pdf-url-endpoint")
+      expect(rendered).to include("abc123")
+    end
+
+    it "renders empty for PDF block with missing signed_id" do
+      content = {
+        "blocks" => [
+          {
+            "type" => "pdf",
+            "data" => {"file" => {"name" => "test.pdf"}}
+          }
+        ]
+      }
+      rendered = described_class.new(content).render
+      expect(rendered.strip).to eq("")
+    end
+  end
 end
 
 class Layout

@@ -15,6 +15,7 @@ pin "panda/editor/plain_text_editor", to: "/panda/editor/plain_text_editor.js"
 pin "panda/editor/css_extractor", to: "/panda/editor/css_extractor.js"
 pin "panda/editor/rich_text_editor", to: "/panda/editor/rich_text_editor.js"
 pin "panda/editor/encoding", to: "/panda/editor/encoding.js"
+pin "panda/editor/tools/pdf_tool", to: "/panda/editor/tools/pdf_tool.js"
 
 # EditorJS Core and plugins (from esm.sh - better ES module handling than jsdelivr)
 pin "@editorjs/editorjs", to: "https://esm.sh/@editorjs/editorjs@2.28.2"

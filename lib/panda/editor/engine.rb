@@ -7,9 +7,13 @@ require "sanitize"
 require "panda/core"
 require "panda/core/engine" if defined?(Rails)
 
+require_relative "engine/route_config"
+
 module Panda
   module Editor
     class Engine < ::Rails::Engine
+      include RouteConfig
+
       isolate_namespace Panda::Editor
 
       config.generators do |g|
@@ -27,6 +31,13 @@ module Panda
         app.config.assets.paths << root.join("app/javascript")
         app.config.assets.paths << root.join("public")
         app.config.assets.precompile += %w[panda/editor/*.js panda/editor/*.css]
+      end
+
+      # Make config helper available to all views (including panda-cms admin views)
+      initializer "panda_editor.helpers" do
+        ActiveSupport.on_load(:action_controller_base) do
+          helper Panda::Editor::ConfigHelper
+        end
       end
 
       # Create a separate importmap for panda-editor
