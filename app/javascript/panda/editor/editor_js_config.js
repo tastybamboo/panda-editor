@@ -1,22 +1,49 @@
-export const EDITOR_JS_RESOURCES = [
+// Maps tool names to their vendored resource URLs.
+// EditorJS core and undo are always loaded.
+// Tools not in this map (e.g., footnote, pdf) are local — loaded via application.js.
+const TOOL_RESOURCE_MAP = {
+  paragraph: "/panda/editor/vendor/@editorjs--paragraph@2.11.7.js",
+  header: "/panda/editor/vendor/@editorjs--header@2.8.8.js",
+  list: "/panda/editor/vendor/@editorjs--nested-list@1.4.3.js",
+  quote: "/panda/editor/vendor/@editorjs--quote@2.7.6.js",
+  image: "/panda/editor/vendor/@editorjs--image@2.10.3.js",
+  table: "/panda/editor/vendor/@editorjs--table@2.4.5.js",
+  embed: "/panda/editor/vendor/@editorjs--embed@2.8.0.js",
+  linkTool: "/panda/editor/vendor/@editorjs--link@2.6.2.js",
+  attaches: "/panda/editor/vendor/@editorjs--attaches@1.3.2.js",
+  link: "/panda/editor/vendor/link-autocomplete.js"
+}
+
+const ALWAYS_LOAD = [
   "/panda/editor/vendor/@editorjs--editorjs@2.31.5.js",
-  "/panda/editor/vendor/@editorjs--paragraph@2.11.7.js",
-  "/panda/editor/vendor/@editorjs--header@2.8.8.js",
-  "/panda/editor/vendor/@editorjs--nested-list@1.4.3.js",
-  "/panda/editor/vendor/@editorjs--quote@2.7.6.js",
-  "/panda/editor/vendor/@editorjs--image@2.10.3.js",
-  "/panda/editor/vendor/@editorjs--table@2.4.5.js",
-  "/panda/editor/vendor/@editorjs--embed@2.8.0.js",
-  "/panda/editor/vendor/@editorjs--link@2.6.2.js",
-  "/panda/editor/vendor/@editorjs--attaches@1.3.2.js",
-  "/panda/editor/vendor/editorjs-undo@2.0.28.js",
-  "/panda/editor/vendor/link-autocomplete.js"
+  "/panda/editor/vendor/editorjs-undo@2.0.28.js"
 ]
 
-// Allow applications to add their own resources
-if (window.PANDA_CMS_EDITOR_JS_RESOURCES) {
-  EDITOR_JS_RESOURCES.push(...window.PANDA_CMS_EDITOR_JS_RESOURCES)
+/**
+ * Returns the list of CDN resources to load, filtered by enabled tools.
+ * @param {Object|null} toolsConfig - The tools config from PANDA_EDITOR_TOOLS_CONFIG (null = load all)
+ * @returns {string[]} Array of resource URLs to load
+ */
+export function getEditorResources(toolsConfig) {
+  const resources = [...ALWAYS_LOAD]
+
+  for (const [toolName, url] of Object.entries(TOOL_RESOURCE_MAP)) {
+    // If no config provided, load all tools (backwards compatible)
+    if (!toolsConfig || toolsConfig[toolName] !== undefined) {
+      resources.push(url)
+    }
+  }
+
+  // Allow applications to add their own resources
+  if (window.PANDA_CMS_EDITOR_JS_RESOURCES) {
+    resources.push(...window.PANDA_CMS_EDITOR_JS_RESOURCES)
+  }
+
+  return resources
 }
+
+// Default: load all resources (backwards compatible for callers that use EDITOR_JS_RESOURCES directly)
+export const EDITOR_JS_RESOURCES = getEditorResources(null)
 
 export const EDITOR_JS_CSS = `
   .codex-editor {
@@ -222,6 +249,160 @@ export const EDITOR_JS_CSS = `
   }
 `
 
+/**
+ * Deep-merge source into target (mutates target).
+ * Arrays are replaced, not concatenated.
+ */
+function deepMerge(target, source) {
+  for (const key of Object.keys(source)) {
+    if (
+      source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) &&
+      target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])
+    ) {
+      deepMerge(target[key], source[key])
+    } else {
+      target[key] = source[key]
+    }
+  }
+  return target
+}
+
+/**
+ * Builds the full tool definitions object for a given window context.
+ * This contains ALL known tools — filtering happens afterwards.
+ */
+function buildAllToolDefinitions(win) {
+  const csrfToken = win.PANDA_CMS_CSRF_TOKEN || win.document?.querySelector('meta[name="csrf-token"]')?.content
+
+  return {
+    paragraph: {
+      class: win.ParagraphWithFootnotes || win.Paragraph,
+      inlineToolbar: true,
+      config: {
+        placeholder: 'Start writing or press Tab to add content...'
+      }
+    },
+    header: {
+      class: win.Header,
+      inlineToolbar: true,
+      config: {
+        placeholder: 'Enter a header',
+        levels: [1, 2, 3, 4, 5, 6],
+        defaultLevel: 2
+      }
+    },
+    list: {
+      class: win.NestedList,
+      inlineToolbar: true,
+      config: {
+        defaultStyle: 'unordered',
+        enableLineBreaks: true
+      }
+    },
+    quote: {
+      class: win.Quote,
+      inlineToolbar: true,
+      config: {
+        quotePlaceholder: 'Enter a quote',
+        captionPlaceholder: 'Quote\'s author'
+      }
+    },
+    image: {
+      class: win.ImageTool,
+      inlineToolbar: true,
+      config: {
+        endpoints: {
+          byFile: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload
+        },
+        field: 'image',
+        types: 'image/*',
+        additionalRequestHeaders: {
+          'X-CSRF-Token': csrfToken
+        }
+      }
+    },
+    table: {
+      class: win.Table,
+      inlineToolbar: true,
+      config: {
+        rows: 2,
+        cols: 2
+      }
+    },
+    embed: {
+      class: win.Embed,
+      inlineToolbar: true,
+      config: {
+        services: {
+          youtube: true,
+          vimeo: true
+        }
+      }
+    },
+    linkTool: {
+      class: win.LinkTool,
+      config: {
+        endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      }
+    },
+    attaches: {
+      class: win.AttachesTool,
+      config: {
+        endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
+        field: 'file',
+        buttonText: 'Select file to upload',
+        additionalRequestHeaders: {
+          'X-CSRF-Token': csrfToken
+        }
+      }
+    },
+    footnote: {
+      class: win.FootnoteTool
+    },
+    link: {
+      class: win.LinkAutocomplete,
+      config: {
+        endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.editorSearch,
+        queryParam: 'search'
+      }
+    },
+    pdf: {
+      class: win.PdfTool,
+      config: {
+        endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
+        field: 'file',
+        csrfToken: csrfToken
+      }
+    }
+  }
+}
+
+/**
+ * Filters and configures tools based on the Ruby-provided tools config.
+ * @param {Object} allTools - All tool definitions from buildAllToolDefinitions
+ * @param {Object|null} toolsConfig - The config from PANDA_EDITOR_TOOLS_CONFIG (null = keep all)
+ * @returns {Object} Filtered and configured tools
+ */
+function applyToolsConfig(allTools, toolsConfig) {
+  if (!toolsConfig) return allTools
+
+  const filtered = {}
+  for (const [name, definition] of Object.entries(allTools)) {
+    if (toolsConfig[name] !== undefined) {
+      filtered[name] = definition
+      // Merge any option overrides from the Ruby config into the tool's config
+      const overrides = toolsConfig[name]
+      if (overrides && typeof overrides === 'object' && Object.keys(overrides).length > 0 && definition.config) {
+        deepMerge(definition.config, overrides)
+      }
+    }
+  }
+  return filtered
+}
+
 export const getEditorConfig = (elementId, previousData, doc = document) => {
   // Validate holder element exists
   const holder = doc.getElementById(elementId)
@@ -235,13 +416,29 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
   // Ensure we have a clean holder element
   holder.innerHTML = ""
 
+  // Build all tool definitions, then filter by config
+  const allTools = buildAllToolDefinitions(win)
+  const toolsConfig = win.PANDA_EDITOR_TOOLS_CONFIG || null
+  let tools = applyToolsConfig(allTools, toolsConfig)
+
+  // Remove any tools whose class didn't load (CDN failure, etc.)
+  tools = Object.fromEntries(
+    Object.entries(tools)
+      .filter(([_, value]) => value?.class !== undefined)
+  )
+
+  // Allow applications to add/override tools via window global
+  if (win.PANDA_CMS_EDITOR_JS_CONFIG) {
+    console.debug("[Panda CMS] Found custom EditorJS config:", Object.keys(win.PANDA_CMS_EDITOR_JS_CONFIG))
+    Object.assign(tools, win.PANDA_CMS_EDITOR_JS_CONFIG)
+  }
+
   const config = {
     holder: elementId,
     data: previousData || {},
     placeholder: 'Click the + button to add content...',
     inlineToolbar: true,
     onChange: () => {
-      // Ensure the editor is properly initialized before handling changes
       if (holder && holder.querySelector('.codex-editor')) {
         const event = new Event('editor:change', { bubbles: true })
         holder.dispatchEvent(event)
@@ -254,118 +451,10 @@ export const getEditorConfig = (elementId, previousData, doc = document) => {
         }
       }
     },
-    tools: {
-      header: {
-        class: win.Header,
-        inlineToolbar: true,
-        config: {
-          placeholder: 'Enter a header',
-          levels: [1, 2, 3, 4, 5, 6],
-          defaultLevel: 2
-        }
-      },
-      paragraph: {
-        class: win.ParagraphWithFootnotes || win.Paragraph,
-        inlineToolbar: true,
-        config: {
-          placeholder: 'Start writing or press Tab to add content...'
-        }
-      },
-      list: {
-        class: win.NestedList,
-        inlineToolbar: true,
-        config: {
-          defaultStyle: 'unordered',
-          enableLineBreaks: true
-        }
-      },
-      quote: {
-        class: win.Quote,
-        inlineToolbar: true,
-        config: {
-          quotePlaceholder: 'Enter a quote',
-          captionPlaceholder: 'Quote\'s author'
-        }
-      },
-      image: {
-        class: win.ImageTool,
-        inlineToolbar: true,
-        config: {
-          endpoints: {
-            byFile: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload
-          },
-          field: 'image',
-          types: 'image/*',
-          additionalRequestHeaders: {
-            'X-CSRF-Token': win.PANDA_CMS_CSRF_TOKEN
-          }
-        }
-      },
-      table: {
-        class: win.Table,
-        inlineToolbar: true,
-        config: {
-          rows: 2,
-          cols: 2
-        }
-      },
-      embed: {
-        class: win.Embed,
-        inlineToolbar: true,
-        config: {
-          services: {
-            youtube: true,
-            vimeo: true
-          }
-        }
-      },
-      linkTool: {
-        class: win.LinkTool,
-        config: {
-          endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata
-        }
-      },
-      attaches: {
-        class: win.AttachesTool,
-        config: {
-          endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
-          field: 'file',
-          buttonText: 'Select file to upload'
-        }
-      },
-      footnote: {
-        class: win.FootnoteTool
-      },
-      link: {
-        class: win.LinkAutocomplete,
-        config: {
-          endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.editorSearch,
-          queryParam: 'search'
-        }
-      }
-    }
+    tools
   }
 
-  // Remove any undefined tools from the config
-  config.tools = Object.fromEntries(
-    Object.entries(config.tools)
-      .filter(([_, value]) => value?.class !== undefined)
-      .map(([name, tool]) => {
-        if (!tool.class) {
-          throw new Error(`Tool ${name} has no class defined`)
-        }
-        return [name, tool]
-      })
-  )
-
-  // Allow applications to customize the config through the iframe's window
-  // (e.g., neurobetter sets window.PANDA_CMS_EDITOR_JS_CONFIG in its application.js)
-  if (win.PANDA_CMS_EDITOR_JS_CONFIG) {
-    console.debug("[Panda CMS] Found custom EditorJS config:", Object.keys(win.PANDA_CMS_EDITOR_JS_CONFIG))
-    Object.assign(config.tools, win.PANDA_CMS_EDITOR_JS_CONFIG)
-  }
-
-  // Allow applications to customize the config through JavaScript
+  // Allow applications to customize the full config through JavaScript
   if (typeof win.customizeEditorJS === 'function') {
     win.customizeEditorJS(config)
   }

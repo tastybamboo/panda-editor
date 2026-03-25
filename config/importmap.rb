@@ -15,6 +15,7 @@ pin "panda/editor/plain_text_editor", to: "/panda/editor/plain_text_editor.js"
 pin "panda/editor/css_extractor", to: "/panda/editor/css_extractor.js"
 pin "panda/editor/rich_text_editor", to: "/panda/editor/rich_text_editor.js"
 pin "panda/editor/encoding", to: "/panda/editor/encoding.js"
+pin "panda/editor/tools/pdf_tool", to: "/panda/editor/tools/pdf_tool.js"
 pin "@editorjs/link-autocomplete", to: "/panda/editor/vendor/link-autocomplete.js"
 
 # EditorJS ESM modules for importmap (used by rich_text_editor.js ES module imports)

@@ -1,0 +1,61 @@
+.panda-pdf-viewer {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f9fafb;
+  margin: 1em 0;
+}
+
+.panda-pdf-viewer__container {
+  display: flex;
+  justify-content: center;
+  background: #f3f4f6;
+  min-height: 200px;
+}
+
+.panda-pdf-viewer__canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.panda-pdf-viewer__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.panda-pdf-viewer__prev,
+.panda-pdf-viewer__next {
+  padding: 6px 16px;
+  font-size: 14px;
+  color: #374151;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.panda-pdf-viewer__prev:hover:not(:disabled),
+.panda-pdf-viewer__next:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.panda-pdf-viewer__prev:disabled,
+.panda-pdf-viewer__next:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.panda-pdf-viewer__page-info {
+  font-size: 14px;
+  color: #6b7280;
+  min-width: 120px;
+  text-align: center;
+}

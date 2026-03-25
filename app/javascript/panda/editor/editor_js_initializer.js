@@ -1,5 +1,5 @@
 import { ResourceLoader } from "./resource_loader.js"
-import { EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig, initializeEditorUndo, patchLinkAutocomplete } from "./editor_js_config.js"
+import { getEditorResources, EDITOR_JS_RESOURCES, EDITOR_JS_CSS, getEditorConfig, initializeEditorUndo, patchLinkAutocomplete } from "./editor_js_config.js"
 import { CSSExtractor } from "./css_extractor.js"
 
 export class EditorJSInitializer {
@@ -43,12 +43,16 @@ export class EditorJSInitializer {
 
   /**
    * Loads the necessary resources for the EditorJS instance.
-   * This method fetches the required scripts and stylesheets and embeds them into the document.
+   * Uses the tools config to only load resources for enabled tools.
    */
   async loadResources() {
     try {
-      // First load EditorJS core
-      const editorCore = EDITOR_JS_RESOURCES[0]
+      const win = this.document.defaultView || window
+      const toolsConfig = win.PANDA_EDITOR_TOOLS_CONFIG || null
+      const resources = getEditorResources(toolsConfig)
+
+      // First load EditorJS core (always first in the list)
+      const editorCore = resources[0]
       await ResourceLoader.loadScript(this.document, this.document.head, editorCore)
 
       // Wait for EditorJS to be available
@@ -61,7 +65,7 @@ export class EditorJSInitializer {
       const OPTIONAL_TOOLS = ['editorjs-undo', 'link-autocomplete']
 
       // Then load all tools sequentially to ensure proper initialization order
-      for (const resource of EDITOR_JS_RESOURCES.slice(1)) {
+      for (const resource of resources.slice(1)) {
         try {
           await ResourceLoader.loadScript(this.document, this.document.head, resource)
           // Extract tool name from resource URL, stripping version (@x.y.z) and file extension (.js)
@@ -87,7 +91,6 @@ export class EditorJSInitializer {
         }
       }
 
-      const win = this.document.defaultView || window
       patchLinkAutocomplete(win)
 
       console.debug('[Panda CMS] All tools successfully loaded and verified')
@@ -220,129 +223,10 @@ export class EditorJSInitializer {
 
       console.debug('[Panda CMS] Processed initial data:', processedData)
 
-      // Get CSRF token from the window context (set by iframe controller or meta tag)
-      const csrfToken = win.PANDA_CMS_CSRF_TOKEN || win.document?.querySelector('meta[name="csrf-token"]')?.content;
+      // Use getEditorConfig to build the tools config (applies PANDA_EDITOR_TOOLS_CONFIG filtering)
+      const editorConfig = getEditorConfig(uniqueId, processedData, this.document)
 
-      // Create editor configuration
-      const config = {
-        holder: holder,
-        data: processedData,
-        placeholder: 'Click to start writing...',
-        tools: {
-          paragraph: {
-            class: win.ParagraphWithFootnotes || win.Paragraph,
-            inlineToolbar: true,
-            config: {
-              preserveBlank: true,
-              placeholder: 'Click to start writing...'
-            }
-          },
-          header: {
-            class: win.Header,
-            inlineToolbar: true,
-            config: {
-              placeholder: 'Enter a header',
-              levels: [1, 2, 3, 4, 5, 6],
-              defaultLevel: 2
-            }
-          },
-          'list': {  // Register as list instead of nested-list
-            class: win.NestedList,
-            inlineToolbar: true,
-            config: {
-              defaultStyle: 'unordered',
-              enableLineBreaks: true
-            }
-          },
-          quote: {
-            class: win.Quote,
-            inlineToolbar: true,
-            config: {
-              quotePlaceholder: 'Enter a quote',
-              captionPlaceholder: 'Quote\'s author'
-            }
-          },
-          image: {
-            class: win.ImageTool,
-            inlineToolbar: true,
-            config: {
-              endpoints: {
-                byFile: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload
-              },
-              field: 'image',
-              types: 'image/*',
-              additionalRequestHeaders: {
-                'X-CSRF-Token': csrfToken
-              }
-            }
-          },
-          linkTool: {
-            class: win.LinkTool,
-            config: {
-              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata,
-              headers: {
-                'X-CSRF-Token': csrfToken
-              }
-            }
-          },
-          attaches: {
-            class: win.AttachesTool,
-            config: {
-              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.fileUpload,
-              field: 'file',
-              buttonText: 'Select file to upload',
-              additionalRequestHeaders: {
-                'X-CSRF-Token': csrfToken
-              }
-            }
-          },
-          footnote: {
-            class: win.FootnoteTool
-          },
-          link: {
-            class: win.LinkAutocomplete,
-            config: {
-              endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.editorSearch,
-              queryParam: 'search'
-            }
-          }
-        },
-        onChange: (api, event) => {
-          console.debug('[Panda CMS] Editor content changed:', { api, event })
-          // Save content to data attributes
-          api.saver.save().then((outputData) => {
-            const jsonString = JSON.stringify(outputData)
-            element.dataset.editablePreviousData = btoa(jsonString)
-            element.dataset.editableContent = jsonString
-            element.dataset.editableInitialized = 'true'
-          })
-        },
-        onReady: () => {
-          console.debug('[Panda CMS] Editor ready with data:', processedData)
-          element.dataset.editableInitialized = 'true'
-          holder.editorInstance = editor
-        },
-        onError: (error) => {
-          console.error('[Panda CMS] Editor error:', error)
-          element.dataset.editableInitialized = 'false'
-          throw error
-        }
-      }
-
-      // Allow applications to customize the config through the iframe's window
-      // (e.g., neurobetter sets window.PANDA_CMS_EDITOR_JS_CONFIG in its application.js)
-      if (win.PANDA_CMS_EDITOR_JS_CONFIG) {
-        console.debug("[Panda CMS] Found custom EditorJS config:", Object.keys(win.PANDA_CMS_EDITOR_JS_CONFIG))
-        Object.assign(config.tools, win.PANDA_CMS_EDITOR_JS_CONFIG)
-      }
-
-      // Remove any undefined tools from the config
-      config.tools = Object.fromEntries(
-        Object.entries(config.tools)
-          .filter(([_, value]) => value?.class !== undefined)
-      )
-
-      console.debug('[Panda CMS] Creating editor with config:', config)
+      console.debug('[Panda CMS] Creating editor with config:', editorConfig)
 
       // Create editor instance with extended timeout
       return new Promise((resolve, reject) => {
@@ -354,7 +238,9 @@ export class EditorJSInitializer {
 
           // Create editor instance with onReady callback
           const editor = new win.EditorJS({
-            ...config,
+            ...editorConfig,
+            // Override holder to use the element directly (getEditorConfig uses string ID)
+            holder: holder,
             onReady: () => {
               console.debug('[Panda CMS] Editor ready with data:', processedData)
               clearTimeout(timeoutId)
