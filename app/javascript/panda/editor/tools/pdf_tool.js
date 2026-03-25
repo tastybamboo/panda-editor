@@ -106,7 +106,12 @@ export default class PdfTool {
   }
 
   async _uploadFile(file) {
-    if (!file || file.type !== 'application/pdf') {
+    const isPdf = file && (
+      file.type === 'application/pdf' ||
+      file.type === 'application/x-pdf' ||
+      file.name?.toLowerCase().endsWith('.pdf')
+    )
+    if (!isPdf) {
       this.api.notifier.show({
         message: 'Please select a PDF file',
         style: 'error'

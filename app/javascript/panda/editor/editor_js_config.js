@@ -1,22 +1,22 @@
-// Maps tool names to their CDN resource URLs.
+// Maps tool names to their vendored resource URLs.
 // EditorJS core and undo are always loaded.
-// Tools not in this map (e.g., footnote, link, pdf) are local — loaded via application.js.
+// Tools not in this map (e.g., footnote, pdf) are local — loaded via application.js.
 const TOOL_RESOURCE_MAP = {
-  paragraph: "https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.3",
-  header: "https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1",
-  list: "https://cdn.jsdelivr.net/npm/@editorjs/nested-list@1.4.2",
-  quote: "https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0",
-  image: "https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3",
-  table: "https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0",
-  embed: "https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0",
-  linkTool: "https://cdn.jsdelivr.net/npm/@editorjs/link@2.6.2",
-  attaches: "https://cdn.jsdelivr.net/npm/@editorjs/attaches@1.3.0",
+  paragraph: "/panda/editor/vendor/@editorjs--paragraph@2.11.7.js",
+  header: "/panda/editor/vendor/@editorjs--header@2.8.8.js",
+  list: "/panda/editor/vendor/@editorjs--nested-list@1.4.3.js",
+  quote: "/panda/editor/vendor/@editorjs--quote@2.7.6.js",
+  image: "/panda/editor/vendor/@editorjs--image@2.10.3.js",
+  table: "/panda/editor/vendor/@editorjs--table@2.4.5.js",
+  embed: "/panda/editor/vendor/@editorjs--embed@2.8.0.js",
+  linkTool: "/panda/editor/vendor/@editorjs--link@2.6.2.js",
+  attaches: "/panda/editor/vendor/@editorjs--attaches@1.3.2.js",
   link: "/panda/editor/vendor/link-autocomplete.js"
 }
 
 const ALWAYS_LOAD = [
-  "https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2",
-  "https://cdn.jsdelivr.net/npm/editorjs-undo@2.0.28"
+  "/panda/editor/vendor/@editorjs--editorjs@2.31.5.js",
+  "/panda/editor/vendor/editorjs-undo@2.0.28.js"
 ]
 
 /**
@@ -342,7 +342,10 @@ function buildAllToolDefinitions(win) {
     linkTool: {
       class: win.LinkTool,
       config: {
-        endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata
+        endpoint: win.PANDA_CMS_EDITOR_JS_ENDPOINTS?.linkMetadata,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
       }
     },
     attaches: {

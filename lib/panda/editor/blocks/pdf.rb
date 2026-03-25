@@ -19,7 +19,7 @@ module Panda
 
         def viewer_html(pdf_url_endpoint, title)
           <<~HTML
-            <div class="panda-pdf-viewer" data-pdf-url-endpoint="#{ERB::Util.html_escape(pdf_url_endpoint)}" role="document" aria-label="#{title}">
+            <div class="panda-pdf-viewer" data-pdf-url-endpoint="#{ERB::Util.html_escape(pdf_url_endpoint)}" role="document" aria-label="#{ERB::Util.html_escape(title)}">
               <div class="panda-pdf-viewer__container">
                 <canvas class="panda-pdf-viewer__canvas"></canvas>
               </div>
