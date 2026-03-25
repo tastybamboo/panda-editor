@@ -9,7 +9,7 @@ module Panda
           signed_id = file["signed_id"]
           return "" if signed_id.blank?
 
-          title = sanitize(file["name"].to_s)
+          title = ERB::Util.html_escape(file["name"].to_s)
           pdf_url_endpoint = "/panda/editor/pdf_url/#{ERB::Util.url_encode(signed_id)}"
 
           html_safe("#{pdf_assets_tags}#{viewer_html(pdf_url_endpoint, title)}")
