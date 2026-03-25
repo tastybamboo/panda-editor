@@ -3,6 +3,8 @@
 module Panda
   module Editor
     class PdfUrlsController < ActionController::Base
+      protect_from_forgery with: :exception
+
       def show
         blob = ActiveStorage::Blob.find_signed!(params[:signed_id])
 
