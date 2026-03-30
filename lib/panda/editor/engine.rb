@@ -33,11 +33,11 @@ module Panda
         app.config.assets.precompile += %w[panda/editor/*.js panda/editor/*.css]
       end
 
-      # Make config helper available to all views (including panda-cms admin views)
-      initializer "panda_editor.helpers" do
-        ActiveSupport.on_load(:action_controller_base) do
-          helper Panda::Editor::ConfigHelper
-        end
+      # Make config helper available to all views (including panda-cms admin views).
+      # Use to_prepare so constant resolution happens after Zeitwerk has set up
+      # the engine's autoload paths (initializer + on_load fires too early).
+      config.to_prepare do
+        ActionController::Base.helper(Panda::Editor::ConfigHelper)
       end
 
       # Create a separate importmap for panda-editor
