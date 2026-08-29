@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [3.3.10, 3.4.8, 4.0.1]
+        ruby: ["3.3", "3.4", "4.0"]
         rails: [7.1, 7.2, 8.1]
     env:
       BUNDLE_PATH: vendor/bundle
